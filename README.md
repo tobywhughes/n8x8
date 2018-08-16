@@ -1,5 +1,5 @@
-#n8x8
+# n8x8
 
-###A Nintendo 64 Emulator
+### A Nintendo 64 Emulator
 
-####Created With Rust
+#### Created With Rust
