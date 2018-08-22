@@ -1,4 +1,8 @@
 use binary_helpers::*;
+use std::fs::File;
+use std::io::prelude::*;
+use std::io;
+use std::fs;
 
 pub struct RomHeader
 {
@@ -33,5 +37,45 @@ impl RomHeader
             country_code: u8_slice_to_u16(header_data[0x003E..0x0040].to_vec()),
             boot_code: u8_vector_to_u32_vector(header_data[0x0040..0x1000].to_vec()),
         }
+    }
+}
+
+pub struct Rom 
+{
+    pub rom_data: Vec<u8>,
+    pub rom_header: RomHeader,
+}
+
+impl Rom 
+{
+    pub fn new(filename: &str) -> Rom 
+    {
+        let rom_data = read_rom_from_filename(filename).unwrap();
+        return Rom 
+        {
+            rom_data: rom_data.clone(),
+            rom_header: RomHeader::new(rom_data[0..0x1000].to_vec()),
+        }
+    }
+}
+
+pub fn read_rom_from_filename(filename: &str) -> Option<Vec<u8>>
+{
+    let mut metadata = fs::metadata(filename).unwrap();
+    let mut buffer: Vec<u8> = vec![0; metadata.len() as usize];
+    let file = File::open(filename);
+    if file.is_ok()
+    {
+        if file.unwrap().read(&mut buffer).is_ok()
+        {
+            return Some(buffer);
+        }
+        else
+        {
+            return None;
+        }
+    }
+    else {
+        return None;
     }
 }
