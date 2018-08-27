@@ -38,6 +38,18 @@ impl RomHeader
             boot_code: u8_vector_to_u32_vector(header_data[0x0040..0x1000].to_vec()),
         }
     }
+    
+    pub fn debug(&self)
+    {
+        println!("PI Register Init Values 0x{:x} 0x{:x} 0x{:x} 0x{:x}", self.pi_reg_initializers[0], self.pi_reg_initializers[1], self.pi_reg_initializers[2], self.pi_reg_initializers[3]);
+        println!("Clock Rate: {:x}", self.clock_rate);
+        println!("Program Counter {:x}", self.program_counter);
+        println!("Release {:x}", self.release);
+        println!("CRC {:x} {:x}", self.crc1, self.crc2);
+        println!("Image Name: {}", String::from_utf8(self.image_name.to_vec()).unwrap());
+        println!("Manufacturer ID {:x}", self.manufacturer_id);
+        println!("Country Code {:x}", self.country_code);
+    }
 }
 
 pub struct Rom 

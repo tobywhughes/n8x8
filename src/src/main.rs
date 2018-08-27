@@ -10,5 +10,5 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let filename: &String = &args[1];
     let rom = Rom::new(filename);
-    println!("{:x}", rom.rom_data[0]);
+    rom.rom_header.debug();
 }
