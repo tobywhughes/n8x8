@@ -70,7 +70,7 @@ impl MemoryMapping
             match address
             {
                 KSEG0_START...KSEG0_END => sector = identify_sector(address - KSEG0_START).unwrap(),
-                KSEG1_START...KSEG1_END => panic!("Unimplemented sysad mapping!"),
+                KSEG1_START...KSEG1_END => sector = identify_sector(address - KSEG1_START).unwrap(),
                 KSSEG_START...KSSEG_END => panic!("Unimplemented sysad mapping!"),
                 KSEG3_START...KSEG3_END => panic!("Unimplemented sysad mapping!"),
                 _ => panic!("Illegal sysad address!")

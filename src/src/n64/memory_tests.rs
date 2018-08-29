@@ -51,7 +51,7 @@ mod memory_tests
     #[allow(overflowing_literals)]
     fn memory_mapping_gives_propper_sector()
     {
-        for address in (0x00000000..0x80000000).step_by(0x100)
+        for address in (0x00000000..0x80000000).step_by(0x1000)
         {
             let mapping = MemoryMapping::new(address);
             match address
@@ -91,6 +91,34 @@ mod memory_tests
         {
             let mapping = MemoryMapping::new(address);
             match (address - 0x80000000)
+            {
+                RDRAM_MEM_START...RDRAM_MEM_END => assert_eq!(mapping.sector, Sector::RDRAM_MEM),
+                RDRAM_REG_START...RDRAM_REG_END => assert_eq!(mapping.sector, Sector::RDRAM_REG),
+                SP_REG_START...SP_REG_END => assert_eq!(mapping.sector, Sector::SP_REG),
+                DP_COMMAND_REG_START...DP_COMMAND_REG_END => assert_eq!(mapping.sector, Sector::DP_COMMAND_REG),
+                DP_SPAN_REG_START...DP_SPAN_REG_END => assert_eq!(mapping.sector, Sector::DP_SPAN_REG),
+                MI_REG_START...MI_REG_END => assert_eq!(mapping.sector, Sector::MI_REG),
+                VI_REG_START...VI_REG_END => assert_eq!(mapping.sector, Sector::VI_REG),
+                AI_REG_START...AI_REG_END => assert_eq!(mapping.sector, Sector::AI_REG),
+                PI_REG_START...PI_REG_END => assert_eq!(mapping.sector, Sector::PI_REG),
+                RI_REG_START...RI_REG_END => assert_eq!(mapping.sector, Sector::RI_REG),
+                SI_REG_START...SI_REG_END => assert_eq!(mapping.sector, Sector::SI_REG),
+                UNUSED_START...UNUSED_END => assert_eq!(mapping.sector, Sector::UNUSED),
+                CD_2_ADDR_1_START...CD_2_ADDR_1_END => assert_eq!(mapping.sector, Sector::CD_2_ADDR_1),
+                CD_1_ADDR_1_START...CD_1_ADDR_1_END => assert_eq!(mapping.sector, Sector::CD_1_ADDR_1),
+                CD_2_ADDR_2_START...CD_2_ADDR_2_END => assert_eq!(mapping.sector, Sector::CD_2_ADDR_2),
+                CD_1_ADDR_2_START...CD_1_ADDR_2_END => assert_eq!(mapping.sector, Sector::CD_1_ADDR_2),
+                PIF_BOOT_ROM_START...PIF_BOOT_ROM_END => assert_eq!(mapping.sector, Sector::PIF_BOOT_ROM),
+                PIF_RAM_START...PIF_RAM_END => assert_eq!(mapping.sector, Sector::PIF_RAM),
+                RESERVED_START...RESERVED_END => assert_eq!(mapping.sector, Sector::RESERVED),
+                CD_1_ADDR_3_START...CD_1_ADDR_3_END => assert_eq!(mapping.sector, Sector::CD_1_ADDR_3),
+                _ => (),
+            }
+        }
+        for address in (0xA0000000..0xC0000000).step_by(0x100)
+        {
+            let mapping = MemoryMapping::new(address);
+            match (address - 0xA0000000)
             {
                 RDRAM_MEM_START...RDRAM_MEM_END => assert_eq!(mapping.sector, Sector::RDRAM_MEM),
                 RDRAM_REG_START...RDRAM_REG_END => assert_eq!(mapping.sector, Sector::RDRAM_REG),
