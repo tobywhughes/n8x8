@@ -3,6 +3,7 @@ use num::{NumCast, ToPrimitive, FromPrimitive};
 use std::fmt;
 
 use n64::exceptions::Exception;
+use n64::arch::Reg;
 
 pub struct CPU
 {
@@ -24,7 +25,7 @@ impl CPU
 
 pub struct CPURegisters
 {
-    pub register: Vec<CPUReg>,
+    pub register: Vec<Reg>,
 }
 
 impl CPURegisters
@@ -33,7 +34,7 @@ impl CPURegisters
     {
         return CPURegisters
         {
-            register: vec![CPUReg::default(); 0x20],
+            register: vec![Reg::default(); 0x20],
         }
     }
 
@@ -62,7 +63,7 @@ impl CPURegisters
 
 pub struct COP0Registers
 {
-    pub register: Vec<CPUReg>,
+    pub register: Vec<Reg>,
 }
 
 impl COP0Registers
@@ -71,7 +72,7 @@ impl COP0Registers
     {
         return COP0Registers
         {
-            register: vec![CPUReg::default(); 0x20],
+            register: vec![Reg::default(); 0x20],
         }
     }
 
@@ -99,62 +100,6 @@ impl COP0Registers
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct CPUReg 
-{
-    pub value: u64,
-    pub u64_mode: bool,
-}
-
-impl CPUReg
-{
-    pub fn default() -> CPUReg
-    {
-        return CPUReg
-        {
-            value: 0,
-            u64_mode: false,
-        }
-    }
-
-
-    pub fn new(value: u64, u64_mode: bool) -> CPUReg
-    {
-        return CPUReg
-        {
-            value: value,
-            u64_mode: u64_mode,
-        }
-    }
-
-    pub fn get_value(self) -> u64
-    {
-        match self.u64_mode
-        {
-            true => self.value,
-            false => self.value & 0x00000000FFFFFFFF,
-        }
-    }
-
-    pub fn set_value<T: Unsigned + ToPrimitive>(&mut self, value: T)
-    {
-        let new_value: u64 = NumCast::from(value).unwrap();
-        match self.u64_mode
-        {
-            true => self.value = new_value,
-            false =>
-            {
-                if new_value > 0xFFFFFFFF
-                {
-                    panic!("Cannot set a 32 bit register with a 64 bit value")
-                }
-                else {
-                    self.value = new_value;
-                }
-            },
-        }
-    }
-}
 
 #[derive(Debug)]
 #[derive(Copy, Clone)]
