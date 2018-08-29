@@ -43,6 +43,14 @@ const CD_1_ADDR_3_END: u32 = 0x7FFFFFFF;
 const EXT_SYSAD_DEV_START: u32 = 0x80000000;
 const EXT_SYSAD_DEV_END: u32 = 0xFFFFFFFF; 
 
+const KSEG0_START: u32 = 0x80000000;
+const KSEG0_END: u32 = 0x9FFFFFFF;
+const KSEG1_START: u32 = 0xA0000000;
+const KSEG1_END: u32 = 0xBFFFFFFF;
+const KSSEG_START: u32 = 0xC0000000;
+const KSSEG_END: u32 = 0xDFFFFFFF;
+const KSEG3_START: u32 = 0xE0000000; 
+const KSEG3_END: u32 = 0xFFFFFFFF; 
 
 pub struct MemoryMapping
 {
@@ -55,7 +63,20 @@ impl MemoryMapping
 {
     pub fn new(address: u32) -> MemoryMapping
     {
-        let sector= identify_sector(address).unwrap();
+        let mut sector= identify_sector(address).unwrap();
+        
+        if(sector == Sector::EXT_SYSAD_DEV)
+        {
+            match address
+            {
+                KSEG0_START...KSEG0_END => sector = identify_sector(address - KSEG0_START).unwrap(),
+                KSEG1_START...KSEG1_END => panic!("Unimplemented sysad mapping!"),
+                KSSEG_START...KSSEG_END => panic!("Unimplemented sysad mapping!"),
+                KSEG3_START...KSEG3_END => panic!("Unimplemented sysad mapping!"),
+                _ => panic!("Illegal sysad address!")
+            }
+        }
+
         return MemoryMapping
         {
             address: address,
@@ -63,6 +84,7 @@ impl MemoryMapping
             sector: sector,
         }
     }
+
 }
 
 
@@ -124,6 +146,7 @@ impl Sector
             Sector::EXT_SYSAD_DEV => SectorInformation::new(EXT_SYSAD_DEV_START, EXT_SYSAD_DEV_END),
         }
     }
+
 }
 
 impl fmt::Display for Sector
@@ -182,3 +205,4 @@ pub fn identify_sector(address: u32) -> Option<Sector>
         _ => None,
     }
 }
+
