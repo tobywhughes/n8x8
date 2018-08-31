@@ -9,16 +9,24 @@ use n64::memory::MemoryMapping;
 use n64::cpu::CPU;
 use n64::rom::RomHeader;
 use n64::rom::Rom;
+use n64::connector::Connector;
+use n64::n64::N64;
 use std::env;
 
-fn main() {
-    let mut cpu: CPU = CPU::new();
-    cpu.cpu_registers.set_pif_rom_values();
-    cpu.cop0_registers.set_pif_rom_values();
-    cpu.cpu_registers.Debug();
-    cpu.cop0_registers.Debug();
-    // let args: Vec<String> = env::args().collect();
-    // let filename: &String = &args[1];
-    // let rom = Rom::new(filename);
-    // rom.rom_header.debug();
+fn main() 
+{
+    let filename = get_filename();
+    let mut n64: N64 = N64::new(&filename);
+    n64.run_pif_rom();
+    n64.register_debug();
+}
+
+fn get_filename() -> String
+{
+    let mut args: Vec<String> = env::args().collect();
+    if args.len() == 1
+    {
+        panic!("Emulator needs a rom to function!");
+    }
+    return String::from(args.remove(1));
 }
