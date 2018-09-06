@@ -9,6 +9,7 @@ pub struct CPU
 {
     pub cpu_registers: CPURegisters,
     pub cop0_registers: COP0Registers,
+    pub program_counter: Reg,
 }
 
 impl CPU
@@ -19,8 +20,15 @@ impl CPU
         {
             cpu_registers: CPURegisters::new(),
             cop0_registers: COP0Registers::new(),
+            program_counter: Reg::default(),
         }
     }
+
+    pub fn set_pif_rom_values(&mut self)
+    {
+        // Referenced: http://www.emulation64.com/ultra64/bootn64.html
+        self.program_counter.set_value(0xA4000040_u32);
+    } 
 }
 
 pub struct CPURegisters

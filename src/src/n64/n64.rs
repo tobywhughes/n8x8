@@ -16,8 +16,12 @@ impl N64 {
 
     pub fn run_pif_rom(&mut self)
     {
+        //Init CPU
         self.connector.cpu.cpu_registers.set_pif_rom_values();
         self.connector.cpu.cop0_registers.set_pif_rom_values();
+        self.connector.cpu.set_pif_rom_values();
+
+        //Init MIPS Interface
         self.connector.mips_interface.set_pif_rom_values();
     }
 
