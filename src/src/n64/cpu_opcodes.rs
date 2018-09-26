@@ -47,7 +47,8 @@ impl Opcode
     pub fn Debug(&self)
     {
         println!("OPCODE DEBUG - 0x{:08x}", self.opcode);
-        println!("COMMAND - {}\t {}", self.command, self.nuemonic);
+        println!("{:04b} {:04b} {:04b} {:04b} {:04b} {:04b} {:04b} {:04b}", (self.opcode >> 28) & 0xF, (self.opcode >> 24) & 0xF, (self.opcode >> 20) & 0xF, (self.opcode >> 16) & 0xF, (self.opcode >> 12) & 0xF, (self.opcode >> 8) & 0xF, (self.opcode >> 24) & 0xF, self.opcode & 0xF);
+        println!("COMMAND - {}\t{}", self.command, self.nuemonic);
         println!("rs: 0x{:02x}\trt: 0x{:02x}\trd: 0x{:02x}\tsa: 0x{:02x}", self.rs, self.rt, self.rd, self.sa);
         println!("fs: 0x{:02x}\tft: 0x{:02x}\tfd: 0x{:02x}\tbase: 0x{:02x}", self.fs, self.ft, self.fd, self.base);
         println!("imm: 0x{:04x}\toffset: 0x{:04x}\ttarget: 0x{:08x}", self.imm, self.offset, self.target);
@@ -252,6 +253,7 @@ impl Command
                 }
             },
             0b001111 => Command::LUI,
+            0b001001 => Command::ADDIU,
             _ => Command::UNIMPLEMENTED,
         }
     }
@@ -264,6 +266,7 @@ impl Command
         {
             Command::MTC0 => execute_MTC0(opcode, cpu),
             Command::LUI => execute_LUI(opcode, cpu),
+            Command::ADDIU => execute_ADDIU(opcode, cpu),
             _ => panic!("Unimplemented opcode!"),
         }
     }
@@ -286,4 +289,10 @@ fn execute_LUI(opcode: Opcode, cpu: &mut CPU)
 {
     let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cpu_registers.register[opcode.rt as usize].set_value((reg_value & 0x0000FFFF) | ((opcode.imm as u32) << 16));
+}
+
+fn execute_ADDIU(opcode: Opcode, cpu: &mut CPU)
+{
+    let new_value = (cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32) + (opcode.imm as u32);
+    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
