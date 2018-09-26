@@ -254,6 +254,7 @@ impl Command
             },
             0b001111 => Command::LUI,
             0b001001 => Command::ADDIU,
+            0b100011 => Command::LW,
             _ => Command::UNIMPLEMENTED,
         }
     }
@@ -267,6 +268,7 @@ impl Command
             Command::MTC0 => execute_MTC0(opcode, cpu),
             Command::LUI => execute_LUI(opcode, cpu),
             Command::ADDIU => execute_ADDIU(opcode, cpu),
+            Command::LW => execute_LW(opcode, cpu, connector),
             _ => panic!("Unimplemented opcode!"),
         }
     }
@@ -289,6 +291,14 @@ fn execute_LUI(opcode: Opcode, cpu: &mut CPU)
 {
     let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cpu_registers.register[opcode.rt as usize].set_value((reg_value & 0x0000FFFF) | ((opcode.imm as u32) << 16));
+}
+
+fn execute_LW(opcode: Opcode, cpu: &mut CPU, connector: &Connector)
+{
+    let base_reg_val= cpu.cpu_registers.register[opcode.base as usize].get_value() as u32;
+    let address = base_reg_val + opcode.imm as u32;
+    let new_value = connector.read_u32(address);
+    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
 
 fn execute_ADDIU(opcode: Opcode, cpu: &mut CPU)

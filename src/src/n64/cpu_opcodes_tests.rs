@@ -35,5 +35,17 @@ mod cpu_opcodes_tests
         opcode.execute(&mut cpu, &mut connector);
         assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0x00000002_u32);
     }
+
+
+    #[test]
+    fn test_lw() {
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x01].set_value(0x04700000_u32);
+        connector.rdram_iface.load_u32_to_address(0x00000004, 0xFFFFFFFF_u32).unwrap();
+        let opcode = Opcode::new(0b10001100001000010000000000000100_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0xFFFFFFFF_u32);
+    }
 }
 
