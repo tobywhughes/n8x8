@@ -4,6 +4,8 @@ use std::fmt;
 
 use n64::exceptions::Exception;
 use n64::arch::Reg;
+use n64::connector::Connector;
+use n64::cpu_opcodes::Opcode;
 
 pub struct CPU
 {
@@ -28,7 +30,15 @@ impl CPU
     {
         // Referenced: http://www.emulation64.com/ultra64/bootn64.html
         self.program_counter.set_value(0xA4000040_u32);
-    } 
+    }
+
+    pub fn retrieve_opcode(&mut self, connector: &Connector) -> Opcode
+    {
+        let pc: u32 = self.program_counter.get_value() as u32;
+        let value: u32 = connector.read_u32(pc);
+        self.program_counter.set_value(pc + 4);
+        Opcode::new(value)
+    }
 }
 
 pub struct CPURegisters
@@ -55,7 +65,7 @@ impl CPURegisters
         self.register[CPURegisterName::sp as usize].set_value(0xA4001FF0_u32);
     }
 
-    pub fn Debug(self)
+    pub fn Debug(&self)
     {
         println!("CPU Register Dump:");
         for reg in 0..0x20
@@ -94,7 +104,7 @@ impl COP0Registers
         self.register[COP0RegisterName::Config as usize].set_value(0x0006E463_u32);
     }
 
-    pub fn Debug(self)
+    pub fn Debug(&self)
     {
         println!("COP0 Register Dump:");
         for reg in 0..0x20

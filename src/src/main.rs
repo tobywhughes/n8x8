@@ -19,6 +19,7 @@ fn main()
     let mut n64: N64 = N64::new(&filename);
     n64.run_pif_rom();
     n64.register_debug();
+    n64.run();
 }
 
 fn get_filename() -> String

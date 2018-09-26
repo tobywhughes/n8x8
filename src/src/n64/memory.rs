@@ -64,13 +64,21 @@ impl MemoryMapping
     pub fn new(address: u32) -> MemoryMapping
     {
         let mut sector= identify_sector(address).unwrap();
-        
+        let mut kseg_offset: u32 = 0;
         if(sector == Sector::EXT_SYSAD_DEV)
         {
             match address
             {
-                KSEG0_START...KSEG0_END => sector = identify_sector(address - KSEG0_START).unwrap(),
-                KSEG1_START...KSEG1_END => sector = identify_sector(address - KSEG1_START).unwrap(),
+                KSEG0_START...KSEG0_END => 
+                {
+                    sector = identify_sector(address - KSEG0_START).unwrap();
+                    kseg_offset = KSEG0_START;
+                },
+                KSEG1_START...KSEG1_END => 
+                {
+                    sector = identify_sector(address - KSEG1_START).unwrap();
+                    kseg_offset = KSEG1_START;
+                },
                 KSSEG_START...KSSEG_END => panic!("Unimplemented sysad mapping!"),
                 KSEG3_START...KSEG3_END => panic!("Unimplemented sysad mapping!"),
                 _ => panic!("Illegal sysad address!")
@@ -80,7 +88,7 @@ impl MemoryMapping
         return MemoryMapping
         {
             address: address,
-            mapped_address: address - sector.SectorInformation().sector_start,
+            mapped_address: address - sector.SectorInformation().sector_start - kseg_offset,
             sector: sector,
         }
     }
