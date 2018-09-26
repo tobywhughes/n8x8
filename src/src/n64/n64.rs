@@ -44,5 +44,6 @@ impl N64 {
     {
         let opcode = self.cpu.retrieve_opcode(&self.connector);
         opcode.Debug();
+        self.cpu.execute_opcode(opcode, &mut self.connector);
     }
 }

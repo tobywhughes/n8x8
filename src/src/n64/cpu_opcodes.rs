@@ -1,4 +1,6 @@
 use num::{NumCast, ToPrimitive, FromPrimitive};
+use n64::cpu::CPU;
+use n64::connector::Connector;
 use std::fmt;
 
 pub struct Opcode
@@ -42,13 +44,18 @@ impl Opcode
         }
     }
 
-    pub fn Debug(self)
+    pub fn Debug(&self)
     {
         println!("OPCODE DEBUG - 0x{:08x}", self.opcode);
         println!("COMMAND - {}\t {}", self.command, self.nuemonic);
         println!("rs: 0x{:02x}\trt: 0x{:02x}\trd: 0x{:02x}\tsa: 0x{:02x}", self.rs, self.rt, self.rd, self.sa);
         println!("fs: 0x{:02x}\tft: 0x{:02x}\tfd: 0x{:02x}\tbase: 0x{:02x}", self.fs, self.ft, self.fd, self.base);
         println!("imm: 0x{:04x}\toffset: 0x{:04x}\ttarget: 0x{:08x}", self.imm, self.offset, self.target);
+    }
+
+    pub fn execute(self, cpu: &mut CPU, connector: &mut Connector)
+    {
+        self.command.parse(self, cpu, connector);
     }
 }
 
@@ -247,6 +254,15 @@ impl Command
             _ => Command::UNIMPLEMENTED,
         }
     }
+
+    pub fn parse(self, opcode: Opcode, cpu: &mut CPU, connector: &mut Connector)
+    {
+        match self
+        {
+            Command::MTC0 => execute_MTC0(opcode, cpu),
+            _ => panic!("Unimplemented opcode!"),
+        }
+    }
 }
 
 impl fmt::Display for Command
@@ -255,3 +271,9 @@ impl fmt::Display for Command
         write!(f, "{:?}", self)
     }
 } 
+
+fn execute_MTC0(opcode: Opcode, cpu: &mut CPU)
+{
+    let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    cpu.cop0_registers.register[opcode.fs as usize].set_value(reg_value);
+}

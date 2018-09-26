@@ -69,6 +69,15 @@ impl Rom
             rom_header: RomHeader::new(rom_data[0..0x1000].to_vec()),
         }
     }
+
+    pub fn test() -> Rom
+    {
+        return Rom
+        {
+            rom_data: vec![0;0],
+            rom_header: RomHeader::new(vec![0x00; 0x1000]),
+        }
+    }
 }
 
 pub fn read_rom_from_filename(filename: &str) -> Option<Vec<u8>>

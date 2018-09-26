@@ -19,6 +19,16 @@ impl Connector
         }
     }
 
+    pub fn test() -> Connector
+    {
+        return Connector
+        {
+            rom: rom::Rom::test(),
+            mips_interface: mips_iface::MipsInterface::new(),
+            rsp: rsp::RealitySignalProcessor::new(),
+        }
+    }
+
     pub fn read_u32(&self, address: u32) -> u32
     {
         let mapping = memory::MemoryMapping::new(address);

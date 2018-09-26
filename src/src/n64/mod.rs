@@ -14,3 +14,4 @@ pub mod rom_tests;
 pub mod cpu_tests;
 pub mod arch_tests;
 pub mod rsp_tests;
+pub mod cpu_opcodes_tests;

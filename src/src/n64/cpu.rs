@@ -39,6 +39,11 @@ impl CPU
         self.program_counter.set_value(pc + 4);
         Opcode::new(value)
     }
+
+    pub fn execute_opcode(&mut self, opcode: Opcode, connector: &mut Connector)
+    {
+        opcode.execute(self, connector);
+    }
 }
 
 pub struct CPURegisters
