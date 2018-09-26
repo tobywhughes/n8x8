@@ -251,15 +251,19 @@ impl Command
                     _ => Command::UNIMPLEMENTED,
                 }
             },
+            0b001111 => Command::LUI,
             _ => Command::UNIMPLEMENTED,
         }
     }
+
+
 
     pub fn parse(self, opcode: Opcode, cpu: &mut CPU, connector: &mut Connector)
     {
         match self
         {
             Command::MTC0 => execute_MTC0(opcode, cpu),
+            Command::LUI => execute_LUI(opcode, cpu),
             _ => panic!("Unimplemented opcode!"),
         }
     }
@@ -276,4 +280,10 @@ fn execute_MTC0(opcode: Opcode, cpu: &mut CPU)
 {
     let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cop0_registers.register[opcode.fs as usize].set_value(reg_value);
+}
+
+fn execute_LUI(opcode: Opcode, cpu: &mut CPU)
+{
+    let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    cpu.cpu_registers.register[opcode.rt as usize].set_value((reg_value & 0x0000FFFF) | ((opcode.imm as u32) << 16));
 }

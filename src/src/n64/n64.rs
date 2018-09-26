@@ -42,8 +42,13 @@ impl N64 {
 
     pub fn run(&mut self)
     {
-        let opcode = self.cpu.retrieve_opcode(&self.connector);
-        opcode.Debug();
-        self.cpu.execute_opcode(opcode, &mut self.connector);
+        while true == true
+        {
+            println!("PC: 0x{:08x}", self.cpu.program_counter.get_value());
+            let opcode = self.cpu.retrieve_opcode(&self.connector);
+            opcode.Debug();
+            self.cpu.execute_opcode(opcode, &mut self.connector);
+        }
     }
 }
+
