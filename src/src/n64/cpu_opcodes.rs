@@ -2,6 +2,7 @@ use num::{NumCast, ToPrimitive, FromPrimitive};
 use n64::cpu::CPU;
 use n64::connector::Connector;
 use std::fmt;
+use binary_helpers::add_u16_to_u32_as_i16_overflow;
 
 pub struct Opcode
 {
@@ -256,6 +257,7 @@ impl Command
             0b001001 => Command::ADDIU,
             0b100011 => Command::LW,
             0b000101 => Command::BNE,
+            0b101011 => Command::SW,
             0b000000 => 
             {
                 match secondary_value
@@ -278,6 +280,7 @@ impl Command
             Command::LUI => execute_LUI(opcode, cpu),
             Command::ADDIU => execute_ADDIU(opcode, cpu),
             Command::LW => execute_LW(opcode, cpu, connector),
+            Command::SW => execute_SW(opcode, cpu, connector),
             Command::BNE => execute_BNE(opcode, cpu),
             Command::SLL => execute_SLL(opcode, cpu),
             _ => panic!("Unimplemented opcode!"),
@@ -306,15 +309,14 @@ fn execute_LUI(opcode: Opcode, cpu: &mut CPU)
 
 fn execute_LW(opcode: Opcode, cpu: &mut CPU, connector: &Connector)
 {
-    let base_reg_val= cpu.cpu_registers.register[opcode.base as usize].get_value() as u32;
-    let address = base_reg_val + opcode.imm as u32;
+    let address = add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.imm);
     let new_value = connector.read_u32(address);
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
 
 fn execute_ADDIU(opcode: Opcode, cpu: &mut CPU)
 {
-    let new_value = (cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32) + (opcode.imm as u32);
+    let new_value = add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, opcode.imm);
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
 
@@ -324,8 +326,8 @@ fn execute_BNE(opcode: Opcode, cpu: &mut CPU)
     let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     if l_value != r_value
     {
-        let current_pc = cpu.program_counter.get_value() as u32;
-        cpu.program_counter.set_value(current_pc + ((opcode.imm as u32) * 4))
+        let current_pc = cpu.program_counter.get_value() as i64;
+        cpu.program_counter.set_value((current_pc + ((opcode.imm as i16 as i64) * 4)) as u32)
     }
 }
 
@@ -333,4 +335,11 @@ fn execute_SLL(opcode: Opcode, cpu: &mut CPU)
 {
     let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cpu_registers.register[opcode.rd as usize].set_value(new_value << (opcode.sa as u32));
+}
+
+fn execute_SW(opcode: Opcode, cpu: &CPU, connector: &mut Connector)
+{
+    let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    let address =  add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.offset);
+    connector.store_u32(address, new_value)
 }

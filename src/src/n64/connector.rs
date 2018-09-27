@@ -42,4 +42,15 @@ impl Connector
             _ => panic!("Unimplemented Address"),
         }
     }
+
+    pub fn store_u32(&mut self, address:u32, value: u32)
+    {
+        let mapping = memory::MemoryMapping::new(address);
+        match mapping.sector
+        {
+            memory::Sector::RI_REG => self.rdram_iface.load_u32_to_address(mapping.mapped_address as usize, value).unwrap(),
+            memory::Sector::SP_REG => self.rsp.load_u32_to_address(mapping.mapped_address as usize, value).unwrap(),
+            _ => panic!("Unimplemented Address"),
+        };
+    }
 }

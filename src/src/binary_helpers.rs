@@ -31,6 +31,27 @@ pub fn u8_vector_to_u32_vector(u8_vec: Vec<u8>) -> Vec<u32>
     return u32_vector;
 }
 
+pub fn u32_to_u8_vector_by_loc(value: u32, loc: usize, u8_vec: &mut Vec<u8>)
+{
+    if loc > u8_vec.len() -4
+    {
+        panic!("loc out of u8 vector scope");
+    }
+    for offset in 0..4
+    {
+        u8_vec[loc + offset] = (value >> (24 - (8 * offset)) & 0x000000FF) as u8;
+    }
+}
+
+pub fn add_u16_to_u32_as_i16_overflow(u32_val: u32, u16_val: u16) -> u32
+{
+    let u32_val_i = u32_val as i64;
+    let u16_val_i = u16_val as i16 as i64;
+    let result: i64 = u32_val_i + u16_val_i;
+    (result & 0x00000000FFFFFFFF) as u32
+}
+
+
 
 #[cfg(test)]
 mod binary_helpers_tests
@@ -76,5 +97,28 @@ mod binary_helpers_tests
         }
         let converted_vector: Vec<u32> = u8_vector_to_u32_vector(u8_test_vec);
         assert_eq!(converted_vector, u32_test_vec);
+    }
+
+    #[test]
+    fn u32_to_u8_vector_by_loc_test() {
+        let u32_test_val = 0x12345678_u32;
+        let mut u8_test_vec: Vec<u8> = vec![0; 0x08];
+        u32_to_u8_vector_by_loc(u32_test_val, 0x04, &mut u8_test_vec);
+        assert_eq!(u8_test_vec[0x04], 0x12);
+        assert_eq!(u8_test_vec[0x05], 0x34);
+        assert_eq!(u8_test_vec[0x06], 0x56);
+        assert_eq!(u8_test_vec[0x07], 0x78);
+    }
+
+    #[test]
+    fn add_add_u16_to_u32_as_i16_overflow_test() {
+        //Regular
+        assert_eq!(add_u16_to_u32_as_i16_overflow(0x00000001_u32, 0x0001_u16), 0x00000002_u32);
+        //Negative
+        assert_eq!(add_u16_to_u32_as_i16_overflow(0x00000001_u32, 0xFFFF_u16), 0x00000000_u32);
+        //Overflow
+        assert_eq!(add_u16_to_u32_as_i16_overflow(0xFFFFFFFF_u32, 0x0001_u16), 0x00000000_u32);
+        //Negative Overflow
+        assert_eq!(add_u16_to_u32_as_i16_overflow(0x00000000_u32, 0xFFFF_u16), 0xFFFFFFFF_u32);
     }
 }

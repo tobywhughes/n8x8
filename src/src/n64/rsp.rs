@@ -90,6 +90,32 @@ impl RealitySignalProcessor
         }
     }
 
+    pub fn load_u32_to_address(&mut self, address: usize, value: u32) -> Result<(), usize>
+    {
+        //Only allow alligned addresses (unaligned handled exterior to function)
+        if address % 4 != 0
+        {
+            return Err(address);
+        }
+        match address
+        {
+            SP_DMEM_START...SP_DMEM_END => Ok(u32_to_u8_vector_by_loc(value, address - SP_DMEM_START, &mut self.dynamic_memory)),
+            SP_IMEM_START...SP_IMEM_END => Ok(u32_to_u8_vector_by_loc(value, address - SP_IMEM_START, &mut self.instruction_memory)),
+            SP_MEM_ADDR_REG_START...SP_MEM_ADDR_REG_END => Ok(self.memory_address.set_value(value)),
+            SP_DRAM_ADDR_REG_START...SP_DRAM_ADDR_REG_END => Ok(self.dram_dam_address.set_value(value)),
+            SP_RD_LEN_REG_START...SP_RD_LEN_REG_END => Ok(self.read_dma_length.set_value(value)),
+            SP_WR_LEN_REG_START...SP_WR_LEN_REG_END => Ok(self.write_dma_length.set_value(value)),
+            SP_STATUS_REG_START...SP_STATUS_REG_END => Ok(self.status.set_value(value)),
+            SP_DMA_FULL_REG_START...SP_DMA_FULL_REG_END => Ok(self.dma_full.set_value(value)),
+            SP_DMA_BUSY_REG_START...SP_DMA_BUSY_REG_END => Ok(self.dma_busy.set_value(value)),
+            SP_SEMAPHORE_REG_START...SP_SEMAPHORE_REG_END => Ok(self.sempahore.set_value(value)),
+            SP_PC_REG_START...SP_PC_REG_END => Ok(self.program_counter.set_value(value)),
+            SP_IBIST_REG_START...SP_IBIST_REG_END => Ok(self.instruction_memory_self_test.set_value(value)),
+            _ => Err(address),
+        }
+    }
+
+
     pub fn read_u16_from_address(&self, address: usize) -> Option<u16>
     {
         //Only allow alligned addresses (unaligned handled exterior to function)
