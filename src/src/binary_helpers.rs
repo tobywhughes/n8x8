@@ -51,6 +51,21 @@ pub fn add_u16_to_u32_as_i16_overflow(u32_val: u32, u16_val: u16) -> u32
     (result & 0x00000000FFFFFFFF) as u32
 }
 
+pub fn add_u16_to_u32_as_i16_trap(u32_val: u32, u16_val: u16) -> Result<u32, i64>
+{
+    let u32_val_i = u32_val as i64;
+    let u16_val_i = u16_val as i16 as i64;
+    let result: i64 = u32_val_i + u16_val_i;
+    if (result & 0xFFFFFFFF00000000) == 0
+    {
+        Ok(result as u32)
+    }
+    else
+    {
+        Err(result)
+    }
+}
+
 
 
 #[cfg(test)]
@@ -120,5 +135,17 @@ mod binary_helpers_tests
         assert_eq!(add_u16_to_u32_as_i16_overflow(0xFFFFFFFF_u32, 0x0001_u16), 0x00000000_u32);
         //Negative Overflow
         assert_eq!(add_u16_to_u32_as_i16_overflow(0x00000000_u32, 0xFFFF_u16), 0xFFFFFFFF_u32);
+    }
+
+    #[test]
+    fn add_add_u16_to_u32_as_i16_trap_test() {
+        //Regular
+        assert_eq!(add_u16_to_u32_as_i16_trap(0x00000001_u32, 0x0001_u16).unwrap(), 0x00000002_u32);
+        //Negative
+        assert_eq!(add_u16_to_u32_as_i16_trap(0x00000001_u32, 0xFFFF_u16).unwrap(), 0x00000000_u32);
+        //Overflow
+        assert_eq!(add_u16_to_u32_as_i16_trap(0xFFFFFFFF_u32, 0x0001_u16), Err(0x100000000_i64));
+        //Negative Overflow
+        assert_eq!(add_u16_to_u32_as_i16_trap(0x00000000_u32, 0xFFFF_u16), Err(0xFFFFFFFFFFFFFFFF_i64));
     }
 }

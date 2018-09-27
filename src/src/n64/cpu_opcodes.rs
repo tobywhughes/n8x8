@@ -2,7 +2,7 @@ use num::{NumCast, ToPrimitive, FromPrimitive};
 use n64::cpu::CPU;
 use n64::connector::Connector;
 use std::fmt;
-use binary_helpers::add_u16_to_u32_as_i16_overflow;
+use binary_helpers::*;
 
 pub struct Opcode
 {
@@ -259,6 +259,7 @@ impl Command
             0b000101 => Command::BNE,
             0b101011 => Command::SW,
             0b001101 => Command::ORI,
+            0b001000 => Command::ADDI,
             0b000000 => 
             {
                 match secondary_value
@@ -285,6 +286,7 @@ impl Command
             Command::BNE => execute_BNE(opcode, cpu),
             Command::SLL => execute_SLL(opcode, cpu),
             Command::ORI => execute_ORI(opcode, cpu),
+            Command::ADDI => execute_ADDI(opcode, cpu),
             _ => panic!("Unimplemented opcode!"),
         }
     }
@@ -350,4 +352,14 @@ fn execute_ORI(opcode: Opcode, cpu: &mut CPU)
 {
     let new_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value | (opcode.imm as u32));
+}
+
+fn execute_ADDI(opcode: Opcode, cpu: &mut CPU)
+{
+    let new_value = add_u16_to_u32_as_i16_trap(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, opcode.imm);
+    match new_value
+    {
+        Ok(value) => cpu.cpu_registers.register[opcode.rt as usize].set_value(value),
+        Err(err_val) => panic!("Interger overflow trap! Trap handler unimplemented! - {}", err_val),
+    }
 }
