@@ -258,6 +258,7 @@ impl Command
             0b100011 => Command::LW,
             0b000101 => Command::BNE,
             0b101011 => Command::SW,
+            0b001101 => Command::ORI,
             0b000000 => 
             {
                 match secondary_value
@@ -283,6 +284,7 @@ impl Command
             Command::SW => execute_SW(opcode, cpu, connector),
             Command::BNE => execute_BNE(opcode, cpu),
             Command::SLL => execute_SLL(opcode, cpu),
+            Command::ORI => execute_ORI(opcode, cpu),
             _ => panic!("Unimplemented opcode!"),
         }
     }
@@ -342,4 +344,10 @@ fn execute_SW(opcode: Opcode, cpu: &CPU, connector: &mut Connector)
     let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     let address =  add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.offset);
     connector.store_u32(address, new_value)
+}
+
+fn execute_ORI(opcode: Opcode, cpu: &mut CPU)
+{
+    let new_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value | (opcode.imm as u32));
 }

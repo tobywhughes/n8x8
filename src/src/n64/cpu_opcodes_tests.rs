@@ -108,5 +108,15 @@ mod cpu_opcodes_tests
         assert_eq!(connector.read_u32(0x04001FF8_u32), 0xFFFFFFFF_u32);
 
     }
+
+    #[test]
+    fn test_ori() {
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x01].set_value(0xFFFF0000_u32);
+        let opcode = Opcode::new(0b00110100001000011111111111111111_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0xFFFFFFFF_u32);
+    }
 }
 
