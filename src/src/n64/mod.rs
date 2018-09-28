@@ -9,6 +9,7 @@ pub mod n64;
 pub mod rsp;
 pub mod cpu_opcodes;
 pub mod rdram_iface;
+pub mod rdram_registers;
 
 pub mod memory_tests;
 pub mod rom_tests;

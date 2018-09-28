@@ -1,6 +1,8 @@
 use n64::connector::Connector;
 use n64::cpu_opcodes::Opcode;
+use n64::cpu_opcodes::Command;
 use n64::cpu;
+use binary_helpers::add_u16_to_u32_as_i16_overflow;
 
 
 pub struct N64
@@ -52,7 +54,11 @@ impl N64 {
                 Err(e) => 
                 {
                         println!("PC: 0x{:08x}", current_pc);
-                        opcode.Debug(); 
+                        opcode.Debug();
+                        match opcode.command {
+                            Command::SW | Command::LW => println!("Resolved Address: 0x{:08X}", add_u16_to_u32_as_i16_overflow(self.cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.offset)),
+                            _ => (),
+                        };
                         panic!("{}", e) 
                 },
                 Ok(_o) => (),
