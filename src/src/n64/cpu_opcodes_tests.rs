@@ -98,14 +98,14 @@ mod cpu_opcodes_tests
         cpu.cpu_registers.register[0x02].set_value(0xFFFFFFFF_u32);
         let opcode = Opcode::new(0b10101100001000100000000000000001_u32);
         opcode.execute(&mut cpu, &mut connector);
-        assert_eq!(connector.read_u32(0x04001FFC_u32), 0xFFFFFFFF_u32);
+        assert_eq!(connector.read_u32(0x04001FFC_u32).unwrap(), 0xFFFFFFFF_u32);
 
 
         //Negative
         cpu.cpu_registers.register[0x01].set_value(0x04001FF9_u32);
         let opcode = Opcode::new(0b10101100001000101111111111111111_u32);
         opcode.execute(&mut cpu, &mut connector);
-        assert_eq!(connector.read_u32(0x04001FF8_u32), 0xFFFFFFFF_u32);
+        assert_eq!(connector.read_u32(0x04001FF8_u32).unwrap(), 0xFFFFFFFF_u32);
 
     }
 
@@ -143,7 +143,18 @@ mod cpu_opcodes_tests
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0xFFFFFFFF_u32);
         let opcode = Opcode::new(0b0010000000100001011111111111111_u32);
+        opcode.execute(&mut cpu, &mut connector).unwrap();
+    }
+
+    #[test]
+    fn test_or() {
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x01].set_value(0xFFFF0000_u32);
+        cpu.cpu_registers.register[0x02].set_value(0x0000FFFF_u32);
+        let opcode = Opcode::new(0b00000000001000100000100000100101_u32);
         opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0xFFFFFFFF_u32);
     }
 }
 

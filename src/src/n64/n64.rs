@@ -3,12 +3,16 @@ use n64::cpu_opcodes::Opcode;
 use n64::cpu_opcodes::Command;
 use n64::cpu;
 use binary_helpers::add_u16_to_u32_as_i16_overflow;
+use std::collections::VecDeque;
+
+const OPCODE_LOG_SIZE: usize = 5;
 
 
 pub struct N64
 {
     pub connector: Connector,
     pub cpu: cpu::CPU,
+    pub opcode_log: VecDeque<Opcode>, 
 }
 
 impl N64 {
@@ -18,6 +22,7 @@ impl N64 {
         {
             connector: Connector::new(filename),
             cpu: cpu::CPU::new(),
+            opcode_log: VecDeque::new(),
         }
     }
 
@@ -48,11 +53,17 @@ impl N64 {
         {
             let current_pc = self.cpu.program_counter.get_value();
             let opcode = self.cpu.retrieve_opcode(&self.connector);
+            
             //opcode.Debug();
             match self.cpu.execute_opcode(&opcode, &mut self.connector)
             {
                 Err(e) => 
                 {
+                        while !self.opcode_log.is_empty()
+                        {
+                            let popped_opcode = self.opcode_log.pop_front().unwrap();
+                            popped_opcode.Debug();
+                        }
                         println!("PC: 0x{:08x}", current_pc);
                         opcode.Debug();
                         match opcode.command {
@@ -61,8 +72,15 @@ impl N64 {
                         };
                         panic!("{}", e) 
                 },
-                Ok(_o) => (),
-            }
+                Ok(_o) =>
+                {
+                    self.opcode_log.push_back(opcode);
+                    if self.opcode_log.len() > OPCODE_LOG_SIZE
+                    {
+                        self.opcode_log.pop_front();
+                    }
+                },
+            };
         }
     }
 }

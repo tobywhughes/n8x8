@@ -146,8 +146,8 @@ mod binary_helpers_tests
         //Negative
         assert_eq!(add_u16_to_u32_as_i16_trap(0x00000001_u32, 0xFFFF_u16).unwrap(), 0x00000000_u32);
         //Overflow
-        assert_eq!(add_u16_to_u32_as_i16_trap(0xFFFFFFFF_u32, 0x0001_u16), Err(0x100000000_i64));
+        assert!(add_u16_to_u32_as_i16_trap(0xFFFFFFFF_u32, 0x0001_u16).is_err());
         //Negative Overflow
-        assert_eq!(add_u16_to_u32_as_i16_trap(0x00000000_u32, 0xFFFF_u16), Err(0xFFFFFFFFFFFFFFFF_i64));
+        assert!(add_u16_to_u32_as_i16_trap(0x00000000_u32, 0xFFFF_u16).is_err());
     }
 }

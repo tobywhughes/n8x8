@@ -49,7 +49,7 @@ impl Opcode
     pub fn Debug(&self)
     {
         println!("OPCODE DEBUG - 0x{:08x}", self.opcode);
-        println!("{:04b} {:04b} {:04b} {:04b} {:04b} {:04b} {:04b} {:04b}", (self.opcode >> 28) & 0xF, (self.opcode >> 24) & 0xF, (self.opcode >> 20) & 0xF, (self.opcode >> 16) & 0xF, (self.opcode >> 12) & 0xF, (self.opcode >> 8) & 0xF, (self.opcode >> 24) & 0xF, self.opcode & 0xF);
+        println!("{:04b} {:04b} {:04b} {:04b} {:04b} {:04b} {:04b} {:04b}", (self.opcode >> 28) & 0xF, (self.opcode >> 24) & 0xF, (self.opcode >> 20) & 0xF, (self.opcode >> 16) & 0xF, (self.opcode >> 12) & 0xF, (self.opcode >> 8) & 0xF, (self.opcode >> 4) & 0xF, self.opcode & 0xF);
         println!("COMMAND - {}\t{}", self.command, self.nuemonic);
         println!("rs: 0x{:02x}\trt: 0x{:02x}\trd: 0x{:02x}\tsa: 0x{:02x}", self.rs, self.rt, self.rd, self.sa);
         println!("fs: 0x{:02x}\tft: 0x{:02x}\tfd: 0x{:02x}\tbase: 0x{:02x}", self.fs, self.ft, self.fd, self.base);
@@ -267,6 +267,7 @@ impl Command
                 match secondary_value
                 {
                     0b000000 => Command::SLL,
+                    0b100101 => Command::OR,
                     _ => Command::UNIMPLEMENTED,
                 }
             }
@@ -288,6 +289,7 @@ impl Command
             Command::BNE => execute_BNE(opcode, cpu),
             Command::SLL => execute_SLL(opcode, cpu),
             Command::ORI => execute_ORI(opcode, cpu),
+            Command::OR => execute_OR(opcode, cpu),
             Command::ADDI => execute_ADDI(opcode, cpu)?,
             _ => return Err(Error::new(ErrorKind::Other, "Opcode not implemented.")),
         };
@@ -364,4 +366,11 @@ fn execute_ADDI(opcode: &Opcode, cpu: &mut CPU) -> Result<(), Error>
     let new_value = add_u16_to_u32_as_i16_trap(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, opcode.imm)?;
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
     Ok(())
+}
+
+fn execute_OR(opcode: &Opcode, cpu: &mut CPU)
+{
+    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    cpu.cpu_registers.register[opcode.rd as usize].set_value(l_value | r_value);
 }
