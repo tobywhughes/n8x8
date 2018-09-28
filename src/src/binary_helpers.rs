@@ -1,3 +1,5 @@
+use std::io::{Error, ErrorKind};
+
 pub fn u8_slice_to_u32(u8_slice: Vec<u8>) -> u32
 {
     if u8_slice.len() != 4
@@ -51,7 +53,7 @@ pub fn add_u16_to_u32_as_i16_overflow(u32_val: u32, u16_val: u16) -> u32
     (result & 0x00000000FFFFFFFF) as u32
 }
 
-pub fn add_u16_to_u32_as_i16_trap(u32_val: u32, u16_val: u16) -> Result<u32, i64>
+pub fn add_u16_to_u32_as_i16_trap(u32_val: u32, u16_val: u16) -> Result<u32, Error>
 {
     let u32_val_i = u32_val as i64;
     let u16_val_i = u16_val as i16 as i64;
@@ -62,7 +64,7 @@ pub fn add_u16_to_u32_as_i16_trap(u32_val: u32, u16_val: u16) -> Result<u32, i64
     }
     else
     {
-        Err(result)
+        Err(Error::new(ErrorKind::Other, "Overflow Error. Trap Handler Not Implemented."))
     }
 }
 

@@ -1,6 +1,7 @@
 use num::Unsigned;
 use num::{NumCast, ToPrimitive, FromPrimitive};
 use std::fmt;
+use std::io::{Error, ErrorKind};
 
 use n64::exceptions::Exception;
 use n64::arch::Reg;
@@ -35,14 +36,15 @@ impl CPU
     pub fn retrieve_opcode(&mut self, connector: &Connector) -> Opcode
     {
         let pc: u32 = self.program_counter.get_value() as u32;
-        let value: u32 = connector.read_u32(pc);
+        let value: u32 = connector.read_u32(pc).unwrap();
         self.program_counter.set_value(pc + 4);
         Opcode::new(value)
     }
 
-    pub fn execute_opcode(&mut self, opcode: Opcode, connector: &mut Connector)
+    pub fn execute_opcode(&mut self, opcode: &Opcode, connector: &mut Connector) -> Result<(), Error>
     {
-        opcode.execute(self, connector);
+        opcode.execute(self, connector)?;
+        Ok(())
     }
 }
 

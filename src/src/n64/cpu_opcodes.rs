@@ -1,4 +1,5 @@
 use num::{NumCast, ToPrimitive, FromPrimitive};
+use std::io::{Error, ErrorKind};
 use n64::cpu::CPU;
 use n64::connector::Connector;
 use std::fmt;
@@ -55,9 +56,10 @@ impl Opcode
         println!("imm: 0x{:04x}\toffset: 0x{:04x}\ttarget: 0x{:08x}", self.imm, self.offset, self.target);
     }
 
-    pub fn execute(self, cpu: &mut CPU, connector: &mut Connector)
+    pub fn execute(&self, cpu: &mut CPU, connector: &mut Connector) -> Result<(), Error>
     {
-        self.command.parse(self, cpu, connector);
+        self.command.parse(self, cpu, connector)?;
+        Ok(())
     }
 }
 
@@ -274,21 +276,22 @@ impl Command
 
 
 
-    pub fn parse(self, opcode: Opcode, cpu: &mut CPU, connector: &mut Connector)
+    pub fn parse(self, opcode: &Opcode, cpu: &mut CPU, connector: &mut Connector) -> Result<(), Error>
     {
         match self
         {
             Command::MTC0 => execute_MTC0(opcode, cpu),
             Command::LUI => execute_LUI(opcode, cpu),
             Command::ADDIU => execute_ADDIU(opcode, cpu),
-            Command::LW => execute_LW(opcode, cpu, connector),
-            Command::SW => execute_SW(opcode, cpu, connector),
+            Command::LW => execute_LW(opcode, cpu, connector)?,
+            Command::SW => execute_SW(opcode, cpu, connector)?,
             Command::BNE => execute_BNE(opcode, cpu),
             Command::SLL => execute_SLL(opcode, cpu),
             Command::ORI => execute_ORI(opcode, cpu),
-            Command::ADDI => execute_ADDI(opcode, cpu),
-            _ => panic!("Unimplemented opcode!"),
-        }
+            Command::ADDI => execute_ADDI(opcode, cpu)?,
+            _ => return Err(Error::new(ErrorKind::Other, "Opcode not implemented.")),
+        };
+        Ok(())
     }
 }
 
@@ -299,67 +302,66 @@ impl fmt::Display for Command
     }
 } 
 
-fn execute_MTC0(opcode: Opcode, cpu: &mut CPU)
+fn execute_MTC0(opcode: &Opcode, cpu: &mut CPU)
 {
     let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cop0_registers.register[opcode.fs as usize].set_value(reg_value);
 }
 
-fn execute_LUI(opcode: Opcode, cpu: &mut CPU)
+fn execute_LUI(opcode: &Opcode, cpu: &mut CPU)
 {
     let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cpu_registers.register[opcode.rt as usize].set_value((reg_value & 0x0000FFFF) | ((opcode.imm as u32) << 16));
 }
 
-fn execute_LW(opcode: Opcode, cpu: &mut CPU, connector: &Connector)
+fn execute_LW(opcode: &Opcode, cpu: &mut CPU, connector: &Connector) -> Result<(), Error>
 {
     let address = add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.imm);
-    let new_value = connector.read_u32(address);
+    let new_value = connector.read_u32(address)?;
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
+    Ok(())
 }
 
-fn execute_ADDIU(opcode: Opcode, cpu: &mut CPU)
+fn execute_ADDIU(opcode: &Opcode, cpu: &mut CPU)
 {
     let new_value = add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, opcode.imm);
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
 
-fn execute_BNE(opcode: Opcode, cpu: &mut CPU)
+fn execute_BNE(opcode: &Opcode, cpu: &mut CPU)
 {
     let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
     let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     if l_value != r_value
     {
         let current_pc = cpu.program_counter.get_value() as i64;
-        cpu.program_counter.set_value((current_pc + ((opcode.imm as i16 as i64) * 4)) as u32)
+        cpu.program_counter.set_value((current_pc + ((opcode.imm as i16 as i64) * 4)) as u32);
     }
 }
 
-fn execute_SLL(opcode: Opcode, cpu: &mut CPU)
+fn execute_SLL(opcode: &Opcode, cpu: &mut CPU) 
 {
     let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cpu_registers.register[opcode.rd as usize].set_value(new_value << (opcode.sa as u32));
 }
 
-fn execute_SW(opcode: Opcode, cpu: &CPU, connector: &mut Connector)
+fn execute_SW(opcode: &Opcode, cpu: &CPU, connector: &mut Connector) -> Result<(), Error>
 {
     let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     let address =  add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.offset);
-    connector.store_u32(address, new_value)
+    connector.store_u32(address, new_value)?;
+    Ok(())
 }
 
-fn execute_ORI(opcode: Opcode, cpu: &mut CPU)
+fn execute_ORI(opcode: &Opcode, cpu: &mut CPU)
 {
     let new_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value | (opcode.imm as u32));
 }
 
-fn execute_ADDI(opcode: Opcode, cpu: &mut CPU)
+fn execute_ADDI(opcode: &Opcode, cpu: &mut CPU) -> Result<(), Error>
 {
-    let new_value = add_u16_to_u32_as_i16_trap(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, opcode.imm);
-    match new_value
-    {
-        Ok(value) => cpu.cpu_registers.register[opcode.rt as usize].set_value(value),
-        Err(err_val) => panic!("Interger overflow trap! Trap handler unimplemented! - {}", err_val),
-    }
+    let new_value = add_u16_to_u32_as_i16_trap(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, opcode.imm)?;
+    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
+    Ok(())
 }

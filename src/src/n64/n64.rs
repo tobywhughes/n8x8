@@ -44,10 +44,19 @@ impl N64 {
     {
         while true == true
         {
-            println!("PC: 0x{:08x}", self.cpu.program_counter.get_value());
+            let current_pc = self.cpu.program_counter.get_value();
             let opcode = self.cpu.retrieve_opcode(&self.connector);
-            opcode.Debug();
-            self.cpu.execute_opcode(opcode, &mut self.connector);
+            //opcode.Debug();
+            match self.cpu.execute_opcode(&opcode, &mut self.connector)
+            {
+                Err(e) => 
+                {
+                        println!("PC: 0x{:08x}", current_pc);
+                        opcode.Debug(); 
+                        panic!("{}", e) 
+                },
+                Ok(_o) => (),
+            }
         }
     }
 }
