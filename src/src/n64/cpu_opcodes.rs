@@ -261,6 +261,7 @@ impl Command
             0b000101 => Command::BNE,
             0b001000 => Command::ADDI,
             0b001001 => Command::ADDIU,
+            0b001010 => Command::SLTI,
             0b001101 => Command::ORI,
             0b001111 => Command::LUI,
             0b010000 => 
@@ -294,6 +295,7 @@ impl Command
             Command::OR => execute_OR(opcode, cpu),
             Command::ORI => execute_ORI(opcode, cpu),
             Command::SLL => execute_SLL(opcode, cpu),
+            Command::SLTI => execute_SLTI(opcode, cpu),
             Command::SW => execute_SW(opcode, cpu, connector)?,
             _ => return Err(Error::new(ErrorKind::Other, "Opcode not implemented.")),
         };
@@ -390,6 +392,18 @@ fn execute_SLL(opcode: &Opcode, cpu: &mut CPU)
     let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cpu_registers.register[opcode.rd as usize].set_value(new_value << (opcode.sa as u32));
 }
+
+fn execute_SLTI(opcode: &Opcode, cpu: &mut CPU) 
+{
+    if (cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32) < (opcode.imm as u32)
+    {
+        cpu.cpu_registers.register[opcode.rt as usize].set_value(1_u8);
+    }
+    else {
+        cpu.cpu_registers.register[opcode.rt as usize].set_value(0_u8);
+    }
+}
+
 
 fn execute_SW(opcode: &Opcode, cpu: &CPU, connector: &mut Connector) -> Result<(), Error>
 {

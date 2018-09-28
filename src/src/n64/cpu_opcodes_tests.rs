@@ -182,5 +182,20 @@ mod cpu_opcodes_tests
         assert_eq!(cpu.program_counter.get_value() as u32, 0x0FFFFFFC_u32);
         assert_eq!(cpu.cpu_registers.register[CPURegisterName::ra as usize].get_value() as u32, 0x00000008);
     }
+
+    #[test]
+    fn test_slti() {
+        //True
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        let opcode = Opcode::new(0b00101000001000011111111111111111_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0x00000001);
+        
+        //False
+        let opcode = Opcode::new(0b00101000001000010000000000000000_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0x00000000);
+    }
 }
 
