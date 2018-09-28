@@ -1,4 +1,15 @@
+const MI_INIT_MODE_REG_START: usize = 0x00000000;
+const MI_INIT_MODE_REG_END: usize = 0x00000003;
+const MI_VERSION_REG_START: usize = 0x00000004;
+const MI_VERSION_REG_END: usize = 0x00000007;
+const MI_INTR_REG_START: usize = 0x00000008;
+const MI_INTR_REG_END: usize = 0x0000000B;
+const MI_INTR_MASK_REG_START: usize = 0x0000000C;
+const MI_INTR_MASK_REG_END: usize = 0x0000000F;
+
+
 use n64::arch::Reg;
+use std::io::{Error, ErrorKind};
 
 pub struct MipsInterface
 {
@@ -24,5 +35,41 @@ impl MipsInterface
     pub fn set_pif_rom_values(&mut self)
     {
         self.version.set_value(0x01010101_u32);
+    }
+
+    pub fn read_u32_from_address(&self, address: usize) -> Result<u32, Error>
+    {
+        //Only allow alligned addresses (unaligned handled exterior to function)
+        if address % 4 != 0
+        {
+            return Err(Error::new(ErrorKind::Other, "Unaligned Address Call."));
+        }
+
+        match address
+        {
+            MI_INIT_MODE_REG_START...MI_INIT_MODE_REG_END => Ok(self.init_mod.get_value() as u32),
+            MI_VERSION_REG_START...MI_VERSION_REG_END => Ok(self.version.get_value() as u32),
+            MI_INTR_REG_START...MI_INTR_REG_END => Ok(self.interrupt.get_value() as u32),
+            MI_INTR_MASK_REG_START...MI_INTR_MASK_REG_END => Ok(self.interrupt_mask.get_value() as u32),
+            _ => Err(Error::new(ErrorKind::Other, "Unused mips interface address.")),
+        }
+    }
+
+    pub fn load_u32_to_address(&mut self, address: usize, value: u32) -> Result<(), Error>
+    {
+        //Only allow alligned addresses (unaligned handled exterior to function)
+        if address % 4 != 0
+        {
+            return Err(Error::new(ErrorKind::Other, "Unaligned Address Call."));
+        }
+
+        match address
+        {
+            MI_INIT_MODE_REG_START...MI_INIT_MODE_REG_END => Ok(self.init_mod.set_value(value)),
+            MI_VERSION_REG_START...MI_VERSION_REG_END => Ok(self.version.set_value(value)),
+            MI_INTR_REG_START...MI_INTR_REG_END => Ok(self.interrupt.set_value(value)),
+            MI_INTR_MASK_REG_START...MI_INTR_MASK_REG_END => Ok(self.interrupt_mask.set_value(value)),
+            _ => Err(Error::new(ErrorKind::Other, "Unused mips interface address.")),
+        }
     }
 }

@@ -40,6 +40,7 @@ impl Connector
         {
             memory::Sector::SP_REG => Ok(self.rsp.read_u32_from_address(mapping.mapped_address as usize).unwrap()),
             memory::Sector::RI_REG => Ok(self.rdram_iface.read_u32_from_address(mapping.mapped_address as usize).unwrap()),
+            memory::Sector::MI_REG => Ok(self.mips_interface.read_u32_from_address(mapping.mapped_address as usize)?),
             _ => Err(Error::new(ErrorKind::Other, "Unimplemented Address.")),
         }
     }
@@ -51,6 +52,7 @@ impl Connector
         {
             memory::Sector::RI_REG => self.rdram_iface.load_u32_to_address(mapping.mapped_address as usize, value).unwrap(),
             memory::Sector::SP_REG => self.rsp.load_u32_to_address(mapping.mapped_address as usize, value).unwrap(),
+            memory::Sector::MI_REG => self.mips_interface.load_u32_to_address(mapping.mapped_address as usize, value)?,
             _ => return Err(Error::new(ErrorKind::Other, "Unimplemented Address.")),
         };
         Ok(())
