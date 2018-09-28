@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod cpu_opcodes_tests
 {
-    use n64::cpu::CPU;
+    use n64::cpu::{CPU, CPURegisterName};
     use n64::connector::Connector;
     use n64::cpu_opcodes::*;
 
@@ -170,6 +170,17 @@ mod cpu_opcodes_tests
         let opcode = Opcode::new(0b00010000001000011111111111111111_u32);
         opcode.execute(&mut cpu, &mut connector);
         assert_eq!(cpu.program_counter.get_value() as u32, 0x00000000);
+    }
+
+    #[test]
+    fn test_jal() {
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        let opcode = Opcode::new(0b00001111111111111111111111111111_u32);
+        cpu.program_counter.set_value(0x00000004_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x0FFFFFFC_u32);
+        assert_eq!(cpu.cpu_registers.register[CPURegisterName::ra as usize].get_value() as u32, 0x00000008);
     }
 }
 

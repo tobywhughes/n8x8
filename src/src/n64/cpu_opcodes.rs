@@ -1,6 +1,6 @@
 use num::{NumCast, ToPrimitive, FromPrimitive};
 use std::io::{Error, ErrorKind};
-use n64::cpu::CPU;
+use n64::cpu::{CPU, CPURegisterName};
 use n64::connector::Connector;
 use std::fmt;
 use binary_helpers::*;
@@ -256,6 +256,7 @@ impl Command
                     _ => Command::UNIMPLEMENTED,
                 }
             },
+            0b000011 => Command::JAL,
             0b000100 => Command::BEQ,
             0b000101 => Command::BNE,
             0b001000 => Command::ADDI,
@@ -286,6 +287,7 @@ impl Command
             Command::ADDIU => execute_ADDIU(opcode, cpu),
             Command::BEQ => execute_BEQ(opcode, cpu),
             Command::BNE => execute_BNE(opcode, cpu),
+            Command::JAL => execute_JAL(opcode, cpu),
             Command::LUI => execute_LUI(opcode, cpu),
             Command::LW => execute_LW(opcode, cpu, connector)?,
             Command::MTC0 => execute_MTC0(opcode, cpu),
@@ -339,6 +341,13 @@ fn execute_BEQ(opcode: &Opcode, cpu: &mut CPU)
         let current_pc = cpu.program_counter.get_value() as i64;
         cpu.program_counter.set_value((current_pc + ((opcode.imm as i16 as i64) * 4)) as u32);
     }
+}
+
+fn execute_JAL(opcode: &Opcode, cpu: &mut CPU)
+{
+    cpu.cpu_registers.register[CPURegisterName::ra as usize].set_value(cpu.program_counter.get_value() as u32 + 4);
+    let masked_pc: u32 = (cpu.program_counter.get_value() as u32) & 0xF0000000;
+    cpu.program_counter.set_value(masked_pc | (opcode.target << 2));
 }
 
 fn execute_LUI(opcode: &Opcode, cpu: &mut CPU)
