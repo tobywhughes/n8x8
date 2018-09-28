@@ -247,21 +247,6 @@ impl Command
         let secondary_value: u8 = (opcode & 0x0000003F) as u8;
         match command_value
         {
-            0b010000 => 
-            {
-                match command2_value
-                {
-                    0b00100 => Command::MTC0,
-                    _ => Command::UNIMPLEMENTED,
-                }
-            },
-            0b001111 => Command::LUI,
-            0b001001 => Command::ADDIU,
-            0b100011 => Command::LW,
-            0b000101 => Command::BNE,
-            0b101011 => Command::SW,
-            0b001101 => Command::ORI,
-            0b001000 => Command::ADDI,
             0b000000 => 
             {
                 match secondary_value
@@ -270,7 +255,23 @@ impl Command
                     0b100101 => Command::OR,
                     _ => Command::UNIMPLEMENTED,
                 }
-            }
+            },
+            0b000100 => Command::BEQ,
+            0b000101 => Command::BNE,
+            0b001000 => Command::ADDI,
+            0b001001 => Command::ADDIU,
+            0b001101 => Command::ORI,
+            0b001111 => Command::LUI,
+            0b010000 => 
+            {
+                match command2_value
+                {
+                    0b00100 => Command::MTC0,
+                    _ => Command::UNIMPLEMENTED,
+                }
+            },
+            0b100011 => Command::LW,
+            0b101011 => Command::SW,
             _ => Command::UNIMPLEMENTED,
         }
     }
@@ -281,16 +282,17 @@ impl Command
     {
         match self
         {
-            Command::MTC0 => execute_MTC0(opcode, cpu),
-            Command::LUI => execute_LUI(opcode, cpu),
-            Command::ADDIU => execute_ADDIU(opcode, cpu),
-            Command::LW => execute_LW(opcode, cpu, connector)?,
-            Command::SW => execute_SW(opcode, cpu, connector)?,
-            Command::BNE => execute_BNE(opcode, cpu),
-            Command::SLL => execute_SLL(opcode, cpu),
-            Command::ORI => execute_ORI(opcode, cpu),
-            Command::OR => execute_OR(opcode, cpu),
             Command::ADDI => execute_ADDI(opcode, cpu)?,
+            Command::ADDIU => execute_ADDIU(opcode, cpu),
+            Command::BEQ => execute_BEQ(opcode, cpu),
+            Command::BNE => execute_BNE(opcode, cpu),
+            Command::LUI => execute_LUI(opcode, cpu),
+            Command::LW => execute_LW(opcode, cpu, connector)?,
+            Command::MTC0 => execute_MTC0(opcode, cpu),
+            Command::OR => execute_OR(opcode, cpu),
+            Command::ORI => execute_ORI(opcode, cpu),
+            Command::SLL => execute_SLL(opcode, cpu),
+            Command::SW => execute_SW(opcode, cpu, connector)?,
             _ => return Err(Error::new(ErrorKind::Other, "Opcode not implemented.")),
         };
         Ok(())
@@ -304,22 +306,9 @@ impl fmt::Display for Command
     }
 } 
 
-fn execute_MTC0(opcode: &Opcode, cpu: &mut CPU)
+fn execute_ADDI(opcode: &Opcode, cpu: &mut CPU) -> Result<(), Error>
 {
-    let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
-    cpu.cop0_registers.register[opcode.fs as usize].set_value(reg_value);
-}
-
-fn execute_LUI(opcode: &Opcode, cpu: &mut CPU)
-{
-    let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
-    cpu.cpu_registers.register[opcode.rt as usize].set_value((reg_value & 0x0000FFFF) | ((opcode.imm as u32) << 16));
-}
-
-fn execute_LW(opcode: &Opcode, cpu: &mut CPU, connector: &Connector) -> Result<(), Error>
-{
-    let address = add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.imm);
-    let new_value = connector.read_u32(address)?;
+    let new_value = add_u16_to_u32_as_i16_trap(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, opcode.imm)?;
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
     Ok(())
 }
@@ -341,6 +330,52 @@ fn execute_BNE(opcode: &Opcode, cpu: &mut CPU)
     }
 }
 
+fn execute_BEQ(opcode: &Opcode, cpu: &mut CPU)
+{
+    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    if l_value == r_value
+    {
+        let current_pc = cpu.program_counter.get_value() as i64;
+        cpu.program_counter.set_value((current_pc + ((opcode.imm as i16 as i64) * 4)) as u32);
+    }
+}
+
+fn execute_LUI(opcode: &Opcode, cpu: &mut CPU)
+{
+    let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    cpu.cpu_registers.register[opcode.rt as usize].set_value((reg_value & 0x0000FFFF) | ((opcode.imm as u32) << 16));
+}
+
+fn execute_LW(opcode: &Opcode, cpu: &mut CPU, connector: &Connector) -> Result<(), Error>
+{
+    let address = add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.imm);
+    let new_value = connector.read_u32(address)?;
+    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
+    Ok(())
+}
+
+
+fn execute_MTC0(opcode: &Opcode, cpu: &mut CPU)
+{
+    let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    cpu.cop0_registers.register[opcode.fs as usize].set_value(reg_value);
+}
+
+fn execute_OR(opcode: &Opcode, cpu: &mut CPU)
+{
+    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    cpu.cpu_registers.register[opcode.rd as usize].set_value(l_value | r_value);
+}
+
+fn execute_ORI(opcode: &Opcode, cpu: &mut CPU)
+{
+    let new_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value | (opcode.imm as u32));
+}
+
+
 fn execute_SLL(opcode: &Opcode, cpu: &mut CPU) 
 {
     let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
@@ -355,22 +390,5 @@ fn execute_SW(opcode: &Opcode, cpu: &CPU, connector: &mut Connector) -> Result<(
     Ok(())
 }
 
-fn execute_ORI(opcode: &Opcode, cpu: &mut CPU)
-{
-    let new_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
-    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value | (opcode.imm as u32));
-}
 
-fn execute_ADDI(opcode: &Opcode, cpu: &mut CPU) -> Result<(), Error>
-{
-    let new_value = add_u16_to_u32_as_i16_trap(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, opcode.imm)?;
-    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
-    Ok(())
-}
 
-fn execute_OR(opcode: &Opcode, cpu: &mut CPU)
-{
-    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
-    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
-    cpu.cpu_registers.register[opcode.rd as usize].set_value(l_value | r_value);
-}

@@ -137,13 +137,12 @@ mod cpu_opcodes_tests
    }
 
     #[test]
-    #[should_panic]
     fn test_addi_trap() {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0xFFFFFFFF_u32);
-        let opcode = Opcode::new(0b0010000000100001011111111111111_u32);
-        opcode.execute(&mut cpu, &mut connector).unwrap();
+        let opcode = Opcode::new(0b00100000001000010111111111111111_u32);
+        assert!(opcode.execute(&mut cpu, &mut connector).is_err());
     }
 
     #[test]
@@ -155,6 +154,22 @@ mod cpu_opcodes_tests
         let opcode = Opcode::new(0b00000000001000100000100000100101_u32);
         opcode.execute(&mut cpu, &mut connector);
         assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0xFFFFFFFF_u32);
+    }
+
+    #[test]
+    fn test_beq() {
+        //Regular
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x01].set_value(0x00000001u32);
+        let opcode = Opcode::new(0b00010000001000010000000000000001_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000004);
+
+        //Negative
+        let opcode = Opcode::new(0b00010000001000011111111111111111_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000000);
     }
 }
 
