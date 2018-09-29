@@ -272,6 +272,7 @@ impl Command
                     _ => Command::UNIMPLEMENTED,
                 }
             },
+            0b010100 => Command::BEQL,
             0b100011 => Command::LW,
             0b101011 => Command::SW,
             _ => Command::UNIMPLEMENTED,
@@ -287,6 +288,7 @@ impl Command
             Command::ADDI => execute_ADDI(opcode, cpu)?,
             Command::ADDIU => execute_ADDIU(opcode, cpu),
             Command::BEQ => execute_BEQ(opcode, cpu),
+            Command::BEQL => execute_BEQL(opcode, cpu),
             Command::BNE => execute_BNE(opcode, cpu),
             Command::JAL => execute_JAL(opcode, cpu),
             Command::LUI => execute_LUI(opcode, cpu),
@@ -342,6 +344,23 @@ fn execute_BEQ(opcode: &Opcode, cpu: &mut CPU)
     {
         let current_pc = cpu.program_counter.get_value() as i64;
         cpu.program_counter.set_value((current_pc + ((opcode.imm as i16 as i64) * 4)) as u32);
+    }
+}
+
+fn execute_BEQL(opcode: &Opcode, cpu: &mut CPU)
+{
+    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    if l_value == r_value
+    {
+        let current_pc = cpu.program_counter.get_value() as i64;
+        cpu.pc_save = (current_pc + ((opcode.imm as i16 as i64) * 4)) as u32;
+        cpu.pc_save_count = 2;
+    }
+    else 
+    {
+        let new_pc = cpu.program_counter.get_value() as u32 + 4;
+        cpu.program_counter.set_value(new_pc);
     }
 }
 

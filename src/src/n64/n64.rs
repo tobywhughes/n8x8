@@ -15,6 +15,7 @@ pub struct N64
     pub cpu: cpu::CPU,
     pub opcode_log: VecDeque<Opcode>,
     pub pc_log: VecDeque<u32>,
+    pub executed_count: u64,
 }
 
 impl N64 {
@@ -26,6 +27,7 @@ impl N64 {
             cpu: cpu::CPU::new(),
             opcode_log: VecDeque::new(),
             pc_log: VecDeque::new(),
+            executed_count: 0,
         }
     }
 
@@ -62,25 +64,27 @@ impl N64 {
             {
                 Err(e) => 
                 {
-                        while !self.pc_log.is_empty()
-                        {
-                            println!("PC: 0x{:08x}", self.pc_log.pop_front().unwrap());
-                        }
-                        while !self.opcode_log.is_empty()
-                        {
-                            let popped_opcode = self.opcode_log.pop_front().unwrap();
-                            popped_opcode.Debug();
-                        }
-                        println!("PC: 0x{:08x}", current_pc);
-                        opcode.Debug();
-                        match opcode.command {
-                            Command::SW | Command::LW => println!("Resolved Address: 0x{:08X}", add_u16_to_u32_as_i16_overflow(self.cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.offset)),
-                            _ => (),
-                        };
-                        panic!("{}", e) 
+                    while !self.pc_log.is_empty()
+                    {
+                        println!("PC: 0x{:08x}", self.pc_log.pop_front().unwrap());
+                    }
+                    while !self.opcode_log.is_empty()
+                    {
+                        let popped_opcode = self.opcode_log.pop_front().unwrap();
+                        popped_opcode.Debug();
+                    }
+                    println!("PC: 0x{:08x}", current_pc);
+                    opcode.Debug();
+                    match opcode.command {
+                        Command::SW | Command::LW => println!("Resolved Address: 0x{:08X}", add_u16_to_u32_as_i16_overflow(self.cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.offset)),
+                        _ => (),
+                    };
+                    println!("Total Executed: {}", self.executed_count + 1);
+                    panic!("{}", e) 
                 },
                 Ok(_o) =>
                 {
+                    self.executed_count += 1;
                     self.opcode_log.push_back(opcode);
                     self.pc_log.push_back(self.cpu.program_counter.get_value() as u32);
                     if self.opcode_log.len() > OPCODE_LOG_SIZE

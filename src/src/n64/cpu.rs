@@ -13,6 +13,8 @@ pub struct CPU
     pub cpu_registers: CPURegisters,
     pub cop0_registers: COP0Registers,
     pub program_counter: Reg,
+    pub pc_save: u32,
+    pub pc_save_count: u8,
 }
 
 impl CPU
@@ -24,6 +26,8 @@ impl CPU
             cpu_registers: CPURegisters::new(),
             cop0_registers: COP0Registers::new(),
             program_counter: Reg::default(),
+            pc_save: 0,
+            pc_save_count: 0,
         }
     }
 
@@ -44,6 +48,15 @@ impl CPU
     pub fn execute_opcode(&mut self, opcode: &Opcode, connector: &mut Connector) -> Result<(), Error>
     {
         opcode.execute(self, connector)?;
+        if self.pc_save_count > 0
+        {
+            if self.pc_save_count == 1
+            {
+                self.program_counter.set_value(self.pc_save);
+            }
+
+            self.pc_save_count -= 1;
+        }
         Ok(())
     }
 }
