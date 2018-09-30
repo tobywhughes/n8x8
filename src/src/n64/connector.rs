@@ -1,4 +1,4 @@
-use n64::{cpu, rom, mips_iface, memory,rsp, rdram_iface, rdram_registers};
+use n64::{cpu, rom, mips_iface, memory,rsp, rdram_iface, rdram_registers, rdram};
 use std::io::{Error, ErrorKind};
 
 pub struct Connector
@@ -8,6 +8,7 @@ pub struct Connector
     pub rsp: rsp::RealitySignalProcessor,
     pub rdram_iface: rdram_iface::RDRAMInterface,
     pub rdram_registers: rdram_registers::RDRAMRegisters, 
+    pub rdram: rdram::RDRAM,
 }
 
 impl Connector
@@ -21,6 +22,7 @@ impl Connector
             rsp: rsp::RealitySignalProcessor::new(),
             rdram_iface: rdram_iface::RDRAMInterface::new(),
             rdram_registers: rdram_registers::RDRAMRegisters::new(),
+            rdram: rdram::RDRAM::new(),
         }
     }
 
@@ -33,6 +35,7 @@ impl Connector
             rsp: rsp::RealitySignalProcessor::new(),
             rdram_iface: rdram_iface::RDRAMInterface::new(),
             rdram_registers: rdram_registers::RDRAMRegisters::new(),
+            rdram: rdram::RDRAM::new(),
         }
     }
 
@@ -45,6 +48,7 @@ impl Connector
             memory::Sector::RI_REG => Ok(self.rdram_iface.read_u32_from_address(mapping.mapped_address as usize).unwrap()),
             memory::Sector::MI_REG => Ok(self.mips_interface.read_u32_from_address(mapping.mapped_address as usize)?),
             memory::Sector::RDRAM_REG => Ok(self.rdram_registers.read_u32_from_address(mapping.mapped_address as usize)?),
+            memory::Sector::RDRAM_MEM => Ok(self.rdram.read_u32_from_address(mapping.mapped_address as usize)?),
             _ => Err(Error::new(ErrorKind::Other, "Unimplemented Address.")),
         }
     }
@@ -57,7 +61,8 @@ impl Connector
             memory::Sector::RI_REG => self.rdram_iface.load_u32_to_address(mapping.mapped_address as usize, value).unwrap(),
             memory::Sector::SP_REG => self.rsp.load_u32_to_address(mapping.mapped_address as usize, value).unwrap(),
             memory::Sector::MI_REG => self.mips_interface.load_u32_to_address(mapping.mapped_address as usize, value)?,
-            memory::Sector::RDRAM_REG=> self.rdram_registers.load_u32_to_address(mapping.mapped_address as usize, value)?,
+            memory::Sector::RDRAM_REG => self.rdram_registers.load_u32_to_address(mapping.mapped_address as usize, value)?,
+            memory::Sector::RDRAM_MEM => self.rdram_registers.load_u32_to_address(mapping.mapped_address as usize, value)?,
             _ => return Err(Error::new(ErrorKind::Other, "Unimplemented Address.")),
         };
         Ok(())

@@ -252,6 +252,7 @@ impl Command
                 match secondary_value
                 {
                     0b000000 => Command::SLL,
+                    0b001000 => Command::JR,
                     0b100101 => Command::OR,
                     _ => Command::UNIMPLEMENTED,
                 }
@@ -294,6 +295,7 @@ impl Command
             Command::BEQL => execute_BEQL(opcode, cpu),
             Command::BNE => execute_BNE(opcode, cpu),
             Command::JAL => execute_JAL(opcode, cpu),
+            Command::JR => execute_JR(opcode, cpu),
             Command::LUI => execute_LUI(opcode, cpu),
             Command::LW => execute_LW(opcode, cpu, connector)?,
             Command::MTC0 => execute_MTC0(opcode, cpu),
@@ -381,10 +383,14 @@ fn execute_JAL(opcode: &Opcode, cpu: &mut CPU)
     cpu.program_counter.set_value(masked_pc | (opcode.target << 2));
 }
 
+fn execute_JR(opcode: &Opcode, cpu: &mut CPU)
+{
+    cpu.program_counter.set_value(cpu.cpu_registers.register[opcode.rs as usize].get_value());
+}
+
 fn execute_LUI(opcode: &Opcode, cpu: &mut CPU)
 {
-    let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
-    cpu.cpu_registers.register[opcode.rt as usize].set_value((reg_value & 0x0000FFFF) | ((opcode.imm as u32) << 16));
+    cpu.cpu_registers.register[opcode.rt as usize].set_value(((opcode.imm as u32) << 16));
 }
 
 fn execute_LW(opcode: &Opcode, cpu: &mut CPU, connector: &Connector) -> Result<(), Error>

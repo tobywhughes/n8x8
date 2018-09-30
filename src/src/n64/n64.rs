@@ -80,6 +80,7 @@ impl N64 {
                         _ => (),
                     };
                     println!("Total Executed: {}", self.executed_count + 1);
+                    self.cpu.cpu_registers.Debug();
                     panic!("{}", e) 
                 },
                 Ok(_o) =>
