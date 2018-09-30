@@ -252,6 +252,7 @@ impl Command
                 match secondary_value
                 {
                     0b000000 => Command::SLL,
+                    0b000010 => Command::SRL,
                     0b001000 => Command::JR,
                     0b100101 => Command::OR,
                     _ => Command::UNIMPLEMENTED,
@@ -303,6 +304,7 @@ impl Command
             Command::ORI => execute_ORI(opcode, cpu),
             Command::SLL => execute_SLL(opcode, cpu),
             Command::SLTI => execute_SLTI(opcode, cpu),
+            Command::SRL => execute_SRL(opcode, cpu),
             Command::SW => execute_SW(opcode, cpu, connector)?,
             Command::XORI => execute_XORI(opcode, cpu),
             _ => return Err(Error::new(ErrorKind::Other, "Opcode not implemented.")),
@@ -437,6 +439,12 @@ fn execute_SLTI(opcode: &Opcode, cpu: &mut CPU)
     else {
         cpu.cpu_registers.register[opcode.rt as usize].set_value(0_u8);
     }
+}
+
+fn execute_SRL(opcode: &Opcode, cpu: &mut CPU) 
+{
+    let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    cpu.cpu_registers.register[opcode.rd as usize].set_value(new_value >> (opcode.sa as u32));
 }
 
 fn execute_SW(opcode: &Opcode, cpu: &CPU, connector: &mut Connector) -> Result<(), Error>
