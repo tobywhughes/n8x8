@@ -274,5 +274,25 @@ mod cpu_opcodes_tests
         opcode.execute(&mut cpu, &mut connector);
         assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0x00000001_u32);
     }
+
+    #[test]
+    fn test_bnel() {
+        //Branch
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x02].set_value(1_u8);
+        let opcode = Opcode::new(0b01010100001000100000000000000100_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000000_u32);
+        let opcode = Opcode::new(0b00000000000000000000000000000000_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000010_u32);
+
+        //No Branch
+        cpu.cpu_registers.register[0x01].set_value(1_u8);
+        let opcode = Opcode::new(0b01010100001000100000000000000100_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000014_u32);
+    }
 }
 
