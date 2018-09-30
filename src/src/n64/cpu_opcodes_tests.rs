@@ -17,7 +17,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_lui() {
+    fn test_lui() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         let opcode = Opcode::new(0b00111100000000011111111111111111_u32);
@@ -27,7 +28,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_addiu() {
+    fn test_addiu() 
+    {
         //Regular
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -44,7 +46,8 @@ mod cpu_opcodes_tests
 
 
     #[test]
-    fn test_lw() {
+    fn test_lw() 
+    {
         //Regular
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -63,7 +66,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_bne() {
+    fn test_bne() 
+    {
         //Regular
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -79,7 +83,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_sll() {
+    fn test_sll() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0x00000001_u32);
@@ -89,7 +94,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_sw() {
+    fn test_sw() 
+    {
 
         //Regular
         let mut cpu = CPU::new();
@@ -110,7 +116,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_ori() {
+    fn test_ori() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0xFFFF0000_u32);
@@ -121,7 +128,8 @@ mod cpu_opcodes_tests
 
 
     #[test]
-    fn test_addi() {
+    fn test_addi() 
+    {
         //Positive
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -137,7 +145,8 @@ mod cpu_opcodes_tests
    }
 
     #[test]
-    fn test_addi_trap() {
+    fn test_addi_trap() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0xFFFFFFFF_u32);
@@ -146,7 +155,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_or() {
+    fn test_or() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0xFFFF0000_u32);
@@ -157,7 +167,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_beq() {
+    fn test_beq() 
+    {
         //Regular
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -173,7 +184,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_jal() {
+    fn test_jal() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         let opcode = Opcode::new(0b00001111111111111111111111111111_u32);
@@ -184,7 +196,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_slti() {
+    fn test_slti() 
+    {
         //True
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -199,7 +212,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_beql() {
+    fn test_beql() 
+    {
         //Branch
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -219,13 +233,26 @@ mod cpu_opcodes_tests
 
 
     #[test]
-    fn test_andi() {
+    fn test_andi() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0xFFFFFFFF_u32);
         let opcode = Opcode::new(0b00110000001000011111111111111111_u32);
         opcode.execute(&mut cpu, &mut connector);
         assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0x0000FFFF_u32);
+    }
+
+
+    #[test]
+    fn test_xori() 
+    {
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x01].set_value(0xFFFFFFFF_u32);
+        let opcode = Opcode::new(0b00111000001000011111111111111111_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0xFFFF0000_u32);
     }
 }
 

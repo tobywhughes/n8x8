@@ -264,6 +264,7 @@ impl Command
             0b001010 => Command::SLTI,
             0b001100 => Command::ANDI,
             0b001101 => Command::ORI,
+            0b001110 => Command::XORI,
             0b001111 => Command::LUI,
             0b010000 => 
             {
@@ -301,6 +302,7 @@ impl Command
             Command::SLL => execute_SLL(opcode, cpu),
             Command::SLTI => execute_SLTI(opcode, cpu),
             Command::SW => execute_SW(opcode, cpu, connector)?,
+            Command::XORI => execute_XORI(opcode, cpu),
             _ => return Err(Error::new(ErrorKind::Other, "Opcode not implemented.")),
         };
         Ok(())
@@ -431,13 +433,18 @@ fn execute_SLTI(opcode: &Opcode, cpu: &mut CPU)
     }
 }
 
-
 fn execute_SW(opcode: &Opcode, cpu: &CPU, connector: &mut Connector) -> Result<(), Error>
 {
     let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     let address =  add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.offset);
     connector.store_u32(address, new_value)?;
     Ok(())
+}
+
+fn execute_XORI(opcode: &Opcode, cpu: &mut CPU)
+{
+    let new_value = (cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32) ^ (opcode.imm as u32);
+    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
 
 
