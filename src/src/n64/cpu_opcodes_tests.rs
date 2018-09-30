@@ -325,5 +325,22 @@ mod cpu_opcodes_tests
         cpu.execute_opcode(&opcode, &mut connector);
         assert_eq!(cpu.program_counter.get_value() as u32, 0x00000014_u32);
     }
+
+    #[test]
+    fn test_addu() {
+        //Regular
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x01].set_value(0x00000001_u32);
+        let opcode = Opcode::new(0b00000000001000010000100000100001_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0x00000002_u32);
+        cpu.cpu_registers.register[0x01].set_value(0x00000001_u32);
+        cpu.cpu_registers.register[0x02].set_value(0xFFFFFFFF_u32);
+        let opcode = Opcode::new(0b00000000010000010000100000100001_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0x00000000_u32);
+        //Overflow
+    }
 }
 
