@@ -262,6 +262,7 @@ impl Command
             0b001000 => Command::ADDI,
             0b001001 => Command::ADDIU,
             0b001010 => Command::SLTI,
+            0b001100 => Command::ANDI,
             0b001101 => Command::ORI,
             0b001111 => Command::LUI,
             0b010000 => 
@@ -287,6 +288,7 @@ impl Command
         {
             Command::ADDI => execute_ADDI(opcode, cpu)?,
             Command::ADDIU => execute_ADDIU(opcode, cpu),
+            Command::ANDI => execute_ANDI(opcode, cpu),
             Command::BEQ => execute_BEQ(opcode, cpu),
             Command::BEQL => execute_BEQL(opcode, cpu),
             Command::BNE => execute_BNE(opcode, cpu),
@@ -322,6 +324,12 @@ fn execute_ADDI(opcode: &Opcode, cpu: &mut CPU) -> Result<(), Error>
 fn execute_ADDIU(opcode: &Opcode, cpu: &mut CPU)
 {
     let new_value = add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, opcode.imm);
+    cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
+}
+
+fn execute_ANDI(opcode: &Opcode, cpu: &mut CPU)
+{
+    let new_value = (cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32) & (opcode.imm as u32);
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
 

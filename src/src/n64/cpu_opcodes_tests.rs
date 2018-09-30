@@ -216,5 +216,16 @@ mod cpu_opcodes_tests
         cpu.execute_opcode(&opcode, &mut connector);
         assert_eq!(cpu.program_counter.get_value() as u32, 0x00000014_u32);
     }
+
+
+    #[test]
+    fn test_andi() {
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x01].set_value(0xFFFFFFFF_u32);
+        let opcode = Opcode::new(0b00110000001000011111111111111111_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0x0000FFFF_u32);
+    }
 }
 
