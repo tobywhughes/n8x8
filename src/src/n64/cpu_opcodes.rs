@@ -278,6 +278,7 @@ impl Command
             },
             0b010100 => Command::BEQL,
             0b010101 => Command::BNEL,
+            0b010110 => Command::BLEZL,
             0b100011 => Command::LW,
             0b101011 => Command::SW,
             _ => Command::UNIMPLEMENTED,
@@ -295,6 +296,7 @@ impl Command
             Command::ANDI => execute_ANDI(opcode, cpu),
             Command::BEQ => execute_BEQ(opcode, cpu),
             Command::BEQL => execute_BEQL(opcode, cpu),
+            Command::BLEZL => execute_BLEZL(opcode, cpu),
             Command::BNE => execute_BNE(opcode, cpu),
             Command::BNEL => execute_BNEL(opcode, cpu),
             Command::JAL => execute_JAL(opcode, cpu),
@@ -368,6 +370,22 @@ fn execute_BEQL(opcode: &Opcode, cpu: &mut CPU)
     let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
     let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     if l_value == r_value
+    {
+        let current_pc = cpu.program_counter.get_value() as i64;
+        cpu.pc_save = (current_pc + ((opcode.imm as i16 as i64) * 4)) as u32;
+        cpu.pc_save_count = 2;
+    }
+    else 
+    {
+        let new_pc = cpu.program_counter.get_value() as u32 + 4;
+        cpu.program_counter.set_value(new_pc);
+    }
+}
+
+fn execute_BLEZL(opcode: &Opcode, cpu: &mut CPU)
+{
+    let test_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as i32;
+    if test_value <= 0
     {
         let current_pc = cpu.program_counter.get_value() as i64;
         cpu.pc_save = (current_pc + ((opcode.imm as i16 as i64) * 4)) as u32;
