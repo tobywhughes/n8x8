@@ -197,7 +197,9 @@ mod cpu_opcodes_tests
         let mut connector = Connector::test();
         let opcode = Opcode::new(0b00001111111111111111111111111111_u32);
         cpu.program_counter.set_value(0x00000004_u32);
-        opcode.execute(&mut cpu, &mut connector);
+        cpu.execute_opcode(&opcode, &mut connector);
+        let opcode = Opcode::new(0b00000000000000000000000000000000_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
         assert_eq!(cpu.program_counter.get_value() as u32, 0x0FFFFFFC_u32);
         assert_eq!(cpu.cpu_registers.register[CPURegisterName::ra as usize].get_value() as u32, 0x00000008);
     }
@@ -268,7 +270,9 @@ mod cpu_opcodes_tests
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0xFFFFFFFF_u32);
         let opcode = Opcode::new(0b00000000001000000000000000001000_u32);
-        opcode.execute(&mut cpu, &mut connector);
+        cpu.execute_opcode(&opcode, &mut connector);
+        let opcode = Opcode::new(0b00000000000000000000000000000000_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
         assert_eq!(cpu.program_counter.get_value() as u32, 0xFFFFFFFF_u32);
     }
 

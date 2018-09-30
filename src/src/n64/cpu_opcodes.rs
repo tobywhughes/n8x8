@@ -423,12 +423,14 @@ fn execute_JAL(opcode: &Opcode, cpu: &mut CPU)
 {
     cpu.cpu_registers.register[CPURegisterName::ra as usize].set_value(cpu.program_counter.get_value() as u32 + 4);
     let masked_pc: u32 = (cpu.program_counter.get_value() as u32) & 0xF0000000;
-    cpu.program_counter.set_value(masked_pc | (opcode.target << 2));
+    cpu.pc_save = (masked_pc | (opcode.target << 2)) as u32;
+    cpu.pc_save_count = 2;
 }
 
 fn execute_JR(opcode: &Opcode, cpu: &mut CPU)
 {
-    cpu.program_counter.set_value(cpu.cpu_registers.register[opcode.rs as usize].get_value());
+    cpu.pc_save = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    cpu.pc_save_count = 2;
 }
 
 fn execute_LUI(opcode: &Opcode, cpu: &mut CPU)
