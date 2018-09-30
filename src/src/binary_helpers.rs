@@ -76,6 +76,21 @@ pub fn add_u32_overflow(u32_val_a: u32, u32_val_b: u32) -> u32
     (result & 0x00000000FFFFFFFF) as u32
 }
 
+pub fn add_u32_trap(u32_val_a: u32, u32_val_b: u32) -> Result<u32, Error>
+{
+    let u32_val_a_l = u32_val_a as u64;
+    let u32_val_b_l = u32_val_b as u64;
+    let result: u64 = u32_val_a_l + u32_val_b_l;
+        if (result & 0xFFFFFFFF00000000) == 0
+    {
+        Ok(result as u32)
+    }
+    else
+    {
+        Err(Error::new(ErrorKind::Other, "Overflow Error. Trap Handler Not Implemented."))
+    }
+}
+
 
 
 #[cfg(test)]
@@ -160,11 +175,19 @@ mod binary_helpers_tests
     }
 
 
-        #[test]
+    #[test]
     fn add_u32_overflow_test() {
         //Regular
         assert_eq!(add_u32_overflow(0x00000001_u32, 0x00000001_u32), 0x00000002_u32);
         //Overflow
         assert_eq!(add_u32_overflow(0xFFFFFFFF_u32, 0x00000001_u32), 0x00000000_u32);
+    }
+
+    #[test]
+    fn add_u32_trap_test() {
+        //Regular
+        assert_eq!(add_u32_trap(0x00000001_u32, 0x00000001_u32).unwrap(), 0x00000002_u32);
+        //Overflow
+        assert!(add_u32_trap(0xFFFFFFFF_u32, 0x00000001_u32).is_err());
     }
 }

@@ -254,6 +254,7 @@ impl Command
                     0b000000 => Command::SLL,
                     0b000010 => Command::SRL,
                     0b001000 => Command::JR,
+                    0b100000 => Command::ADD,
                     0b100001 => Command::ADDU,
                     0b100101 => Command::OR,
                     _ => Command::UNIMPLEMENTED,
@@ -292,6 +293,7 @@ impl Command
     {
         match self
         {
+            Command::ADD => execute_ADD(opcode, cpu)?,
             Command::ADDI => execute_ADDI(opcode, cpu)?,
             Command::ADDIU => execute_ADDIU(opcode, cpu),
             Command::ADDU => execute_ADDU(opcode, cpu),
@@ -325,6 +327,14 @@ impl fmt::Display for Command
         write!(f, "{:?}", self)
     }
 } 
+
+fn execute_ADD(opcode: &Opcode, cpu: &mut CPU) -> Result<(), Error>
+{
+    let new_value = add_u32_trap(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32)?;
+    cpu.cpu_registers.register[opcode.rd as usize].set_value(new_value);
+    Ok(())
+}
+
 
 fn execute_ADDI(opcode: &Opcode, cpu: &mut CPU) -> Result<(), Error>
 {
