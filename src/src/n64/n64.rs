@@ -86,6 +86,12 @@ impl N64 {
                 Ok(_o) =>
                 {
                     self.executed_count += 1;
+                    // if current_pc == 0xA4000894
+                    // {
+                    //     println!("PC: 0x{:08x}", current_pc);
+                    //     opcode.Debug();
+                    //     self.cpu.cpu_registers.Debug();
+                    // }
                     self.opcode_log.push_back(opcode);
                     self.pc_log.push_back(self.cpu.program_counter.get_value() as u32);
                     if self.opcode_log.len() > OPCODE_LOG_SIZE

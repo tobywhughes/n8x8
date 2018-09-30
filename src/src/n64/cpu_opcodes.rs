@@ -343,16 +343,6 @@ fn execute_ANDI(opcode: &Opcode, cpu: &mut CPU)
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
 
-fn execute_BNE(opcode: &Opcode, cpu: &mut CPU)
-{
-    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
-    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
-    if l_value != r_value
-    {
-        let current_pc = cpu.program_counter.get_value() as i64;
-        cpu.program_counter.set_value((current_pc + ((opcode.imm as i16 as i64) * 4)) as u32);
-    }
-}
 
 fn execute_BEQ(opcode: &Opcode, cpu: &mut CPU)
 {
@@ -361,7 +351,8 @@ fn execute_BEQ(opcode: &Opcode, cpu: &mut CPU)
     if l_value == r_value
     {
         let current_pc = cpu.program_counter.get_value() as i64;
-        cpu.program_counter.set_value((current_pc + ((opcode.imm as i16 as i64) * 4)) as u32);
+        cpu.pc_save = (current_pc + ((opcode.imm as i16 as i64) * 4)) as u32;
+        cpu.pc_save_count = 2;
     }
 }
 
@@ -381,6 +372,19 @@ fn execute_BEQL(opcode: &Opcode, cpu: &mut CPU)
         cpu.program_counter.set_value(new_pc);
     }
 }
+
+fn execute_BNE(opcode: &Opcode, cpu: &mut CPU)
+{
+    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    if l_value != r_value
+    {
+        let current_pc = cpu.program_counter.get_value() as i64;
+        cpu.pc_save = (current_pc + ((opcode.imm as i16 as i64) * 4)) as u32;
+        cpu.pc_save_count = 2;
+    }
+}
+
 
 fn execute_BLEZL(opcode: &Opcode, cpu: &mut CPU)
 {

@@ -68,18 +68,22 @@ mod cpu_opcodes_tests
     #[test]
     fn test_bne() 
     {
-        //Regular
+        //Branch
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
-        cpu.cpu_registers.register[0x01].set_value(0x00000001u32);
-        let opcode = Opcode::new(0b00010100010000010000000000000001_u32);
-        opcode.execute(&mut cpu, &mut connector);
-        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000004);
+        cpu.cpu_registers.register[0x02].set_value(1_u8);
+        let opcode = Opcode::new(0b00010100010000010000000000000100_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000000_u32);
+        let opcode = Opcode::new(0b00000000000000000000000000000000_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000010_u32);
 
-        //Negative
-        let opcode = Opcode::new(0b00010100010000011111111111111111_u32);
-        opcode.execute(&mut cpu, &mut connector);
-        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000000);
+        //No Branch
+        cpu.cpu_registers.register[0x01].set_value(1_u8);
+        let opcode = Opcode::new(0b00010100010000010000000000000100_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000010_u32);
     }
 
     #[test]
@@ -169,18 +173,21 @@ mod cpu_opcodes_tests
     #[test]
     fn test_beq() 
     {
-        //Regular
+        //Branch
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
-        cpu.cpu_registers.register[0x01].set_value(0x00000001u32);
-        let opcode = Opcode::new(0b00010000001000010000000000000001_u32);
-        opcode.execute(&mut cpu, &mut connector);
-        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000004);
+        let opcode = Opcode::new(0b00010000001000010000000000000100_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000000_u32);
+        let opcode = Opcode::new(0b00000000000000000000000000000000_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000010_u32);
 
-        //Negative
-        let opcode = Opcode::new(0b00010000001000011111111111111111_u32);
-        opcode.execute(&mut cpu, &mut connector);
-        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000000);
+        //No Branch
+        cpu.cpu_registers.register[0x02].set_value(1_u8);
+        let opcode = Opcode::new(0b00010000001000010000000000000001_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+        assert_eq!(cpu.program_counter.get_value() as u32, 0x00000010_u32);
     }
 
     #[test]
