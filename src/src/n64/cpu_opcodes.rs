@@ -256,6 +256,7 @@ impl Command
                     0b001000 => Command::JR,
                     0b100000 => Command::ADD,
                     0b100001 => Command::ADDU,
+                    0b100100 => Command::AND,
                     0b100101 => Command::OR,
                     0b101010 => Command::SLT,
                     _ => Command::UNIMPLEMENTED,
@@ -298,6 +299,7 @@ impl Command
             Command::ADDI => execute_ADDI(opcode, cpu)?,
             Command::ADDIU => execute_ADDIU(opcode, cpu),
             Command::ADDU => execute_ADDU(opcode, cpu),
+            Command::AND => execute_AND(opcode, cpu),
             Command::ANDI => execute_ANDI(opcode, cpu),
             Command::BEQ => execute_BEQ(opcode, cpu),
             Command::BEQL => execute_BEQL(opcode, cpu),
@@ -357,6 +359,12 @@ fn execute_ADDU(opcode: &Opcode, cpu: &mut CPU)
     cpu.cpu_registers.register[opcode.rd as usize].set_value(new_value);
 }
 
+fn execute_AND(opcode: &Opcode, cpu: &mut CPU)
+{
+    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    cpu.cpu_registers.register[opcode.rd as usize].set_value(l_value & r_value);
+}
 
 fn execute_ANDI(opcode: &Opcode, cpu: &mut CPU)
 {

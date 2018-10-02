@@ -375,7 +375,17 @@ mod cpu_opcodes_tests
         let opcode = Opcode::new(0b00000000010000010001100000101010_u32);
         opcode.execute(&mut cpu, &mut connector);
         assert_eq!(cpu.cpu_registers.register[0x03].get_value() as u32, 0x00000000_u32);
-        
+    }
+
+    #[test]
+    fn test_and() {
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x01].set_value(0x00FFFFFF_u32);
+        cpu.cpu_registers.register[0x02].set_value(0xFFFFFF00_u32);
+        let opcode = Opcode::new(0b00000000001000100000100000100100_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0x00FFFF00_u32);
     }
 }
 
