@@ -89,6 +89,11 @@ impl CPURegisters
         self.register[CPURegisterName::sp as usize].set_value(0xA4001FF0_u32);
     }
 
+    pub fn compute_physical_address(&mut self, virtual_address: u32) -> u32
+    {
+        0
+    }
+
     pub fn Debug(&self)
     {
         println!("CPU Register Dump:");

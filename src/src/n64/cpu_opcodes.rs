@@ -236,7 +236,26 @@ pub enum Command
     S_S, 
     L_S,
     UNIMPLEMENTED, 
+    CACHE_I_ST
 }
+
+//Cache operations can be found in J Heinrich 1994 mips Appendix A-42
+
+//xxxyy
+
+//yy refers to cache
+//00 - i - primary instruction cache
+//01 - d - primary data cache
+//10 - si - secondary instruction cache
+//11 - sd - secondary data cache
+
+//xxx refers to operation
+//000 - I/SI index invalidate
+//000 - D/SD - index writeback invalidate
+//001 - All - index load tag
+//010 - All - index store tag
+//...
+
 
 impl Command
 {
@@ -245,6 +264,7 @@ impl Command
         let command_value: u8 = (opcode >> 26) as u8;
         let command2_value: u8 = ((opcode >> 21) & 0x0000001F) as u8;
         let branch_value: u8 = ((opcode >> 16) & 0x0000001F) as u8;
+        let cache_code = branch_value;
         let secondary_value: u8 = (opcode & 0x0000003F) as u8;
         match command_value
         {
@@ -299,6 +319,14 @@ impl Command
             0b100100 => Command::LBU,
             0b101000 => Command::SB,
             0b101011 => Command::SW,
+            0b101111 =>
+            {
+                match cache_code
+                {
+                    0b01000 => Command::CACHE_I_ST,
+                    _ => Command::UNIMPLEMENTED,
+                }
+            }
             _ => Command::UNIMPLEMENTED,
         }
     }
@@ -321,6 +349,7 @@ impl Command
             Command::BGEZL => execute_BGEZL(opcode, cpu),
             Command::BNE => execute_BNE(opcode, cpu),
             Command::BNEL => execute_BNEL(opcode, cpu),
+            Command::CACHE_I_ST => return Err(Error::new(ErrorKind::Other, "TLB not implemented.")),
             Command::JAL => execute_JAL(opcode, cpu),
             Command::JR => execute_JR(opcode, cpu),
             Command::LBU => execute_LBU(opcode, cpu, connector)?,
@@ -617,3 +646,5 @@ fn execute_XORI(opcode: &Opcode, cpu: &mut CPU)
     let new_value = (cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32) ^ (opcode.imm as u32);
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
+
+
