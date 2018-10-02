@@ -244,6 +244,7 @@ impl Command
     {
         let command_value: u8 = (opcode >> 26) as u8;
         let command2_value: u8 = ((opcode >> 21) & 0x0000001F) as u8;
+        let branch_value: u8 = ((opcode >> 16) & 0x0000001F) as u8;
         let secondary_value: u8 = (opcode & 0x0000003F) as u8;
         match command_value
         {
@@ -265,6 +266,14 @@ impl Command
                     _ => Command::UNIMPLEMENTED,
                 }
             },
+            0b000001 =>
+            {
+                match branch_value
+                {
+                    0b00011 => Command::BGEZL,
+                    _ => Command::UNIMPLEMENTED,
+                }
+            }
             0b000011 => Command::JAL,
             0b000100 => Command::BEQ,
             0b000101 => Command::BNE,
@@ -309,6 +318,7 @@ impl Command
             Command::BEQ => execute_BEQ(opcode, cpu),
             Command::BEQL => execute_BEQL(opcode, cpu),
             Command::BLEZL => execute_BLEZL(opcode, cpu),
+            Command::BGEZL => execute_BGEZL(opcode, cpu),
             Command::BNE => execute_BNE(opcode, cpu),
             Command::BNEL => execute_BNEL(opcode, cpu),
             Command::JAL => execute_JAL(opcode, cpu),
@@ -440,6 +450,23 @@ fn execute_BLEZL(opcode: &Opcode, cpu: &mut CPU)
         cpu.program_counter.set_value(new_pc);
     }
 }
+
+fn execute_BGEZL(opcode: &Opcode, cpu: &mut CPU)
+{
+    let test_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as i32;
+    if test_value >= 0
+    {
+        let current_pc = cpu.program_counter.get_value() as i64;
+        cpu.pc_save = (current_pc + ((opcode.imm as i16 as i64) * 4)) as u32;
+        cpu.pc_save_count = 2;
+    }
+    else 
+    {
+        let new_pc = cpu.program_counter.get_value() as u32 + 4;
+        cpu.program_counter.set_value(new_pc);
+    }
+}
+
 
 fn execute_BNEL(opcode: &Opcode, cpu: &mut CPU)
 {
