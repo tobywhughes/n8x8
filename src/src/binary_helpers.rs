@@ -76,6 +76,14 @@ pub fn add_u32_overflow(u32_val_a: u32, u32_val_b: u32) -> u32
     (result & 0x00000000FFFFFFFF) as u32
 }
 
+pub fn sub_u32_overflow(u32_val_a: u32, u32_val_b: u32) -> u32
+{
+    let u32_val_a_l = u32_val_a as i64;
+    let u32_val_b_l = u32_val_b as i64;
+    let result: i64 = u32_val_a_l - u32_val_b_l;
+    (result & 0x00000000FFFFFFFF) as u32
+}
+
 pub fn add_u32_trap(u32_val_a: u32, u32_val_b: u32) -> Result<u32, Error>
 {
     let u32_val_a_l = u32_val_a as u64;
@@ -181,6 +189,14 @@ mod binary_helpers_tests
         assert_eq!(add_u32_overflow(0x00000001_u32, 0x00000001_u32), 0x00000002_u32);
         //Overflow
         assert_eq!(add_u32_overflow(0xFFFFFFFF_u32, 0x00000001_u32), 0x00000000_u32);
+    }
+
+    #[test]
+    fn sub_u32_overflow_test() {
+        //Regular
+        assert_eq!(sub_u32_overflow(0x00000001_u32, 0x00000001_u32), 0x00000000_u32);
+        //Overflow
+        assert_eq!(sub_u32_overflow(0x00000000_u32, 0x00000001_u32), 0xFFFFFFFF_u32);
     }
 
     #[test]

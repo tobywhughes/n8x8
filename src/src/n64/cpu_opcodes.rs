@@ -256,6 +256,7 @@ impl Command
                     0b001000 => Command::JR,
                     0b100000 => Command::ADD,
                     0b100001 => Command::ADDU,
+                    0b100011 => Command::SUBU,
                     0b100100 => Command::AND,
                     0b100101 => Command::OR,
                     0b101010 => Command::SLT,
@@ -317,6 +318,7 @@ impl Command
             Command::SLT => execute_SLT(opcode, cpu),
             Command::SLTI => execute_SLTI(opcode, cpu),
             Command::SRL => execute_SRL(opcode, cpu),
+            Command::SUBU => execute_SUBU(opcode, cpu),
             Command::SW => execute_SW(opcode, cpu, connector)?,
             Command::XORI => execute_XORI(opcode, cpu),
             _ => return Err(Error::new(ErrorKind::Other, "Opcode not implemented.")),
@@ -531,6 +533,12 @@ fn execute_SRL(opcode: &Opcode, cpu: &mut CPU)
 {
     let new_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cpu_registers.register[opcode.rd as usize].set_value(new_value >> (opcode.sa as u32));
+}
+
+fn execute_SUBU(opcode: &Opcode, cpu: &mut CPU)
+{
+    let new_value = sub_u32_overflow(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32);
+    cpu.cpu_registers.register[opcode.rd as usize].set_value(new_value);
 }
 
 fn execute_SW(opcode: &Opcode, cpu: &CPU, connector: &mut Connector) -> Result<(), Error>
