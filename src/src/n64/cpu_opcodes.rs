@@ -254,6 +254,7 @@ impl Command
                     0b000000 => Command::SLL,
                     0b000010 => Command::SRL,
                     0b001000 => Command::JR,
+                    0b010010 => Command::MFLO,
                     0b011001 => Command::MULTU,
                     0b100000 => Command::ADD,
                     0b100001 => Command::ADDU,
@@ -312,6 +313,7 @@ impl Command
             Command::JR => execute_JR(opcode, cpu),
             Command::LUI => execute_LUI(opcode, cpu),
             Command::LW => execute_LW(opcode, cpu, connector)?,
+            Command::MFLO => execute_MFLO(opcode, cpu),
             Command::MTC0 => execute_MTC0(opcode, cpu),
             Command::MULTU => execute_MULTU(opcode, cpu),
             Command::OR => execute_OR(opcode, cpu),
@@ -479,6 +481,11 @@ fn execute_LW(opcode: &Opcode, cpu: &mut CPU, connector: &Connector) -> Result<(
     Ok(())
 }
 
+fn execute_MFLO(opcode: &Opcode, cpu: &mut CPU)
+{
+    let lo_value = cpu.lo.get_value() as u32;
+    cpu.cpu_registers.register[opcode.rd as usize].set_value(lo_value);
+}
 
 fn execute_MTC0(opcode: &Opcode, cpu: &mut CPU)
 {
