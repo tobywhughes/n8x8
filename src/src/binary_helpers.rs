@@ -99,6 +99,11 @@ pub fn add_u32_trap(u32_val_a: u32, u32_val_b: u32) -> Result<u32, Error>
     }
 }
 
+pub fn multiply_u32_as_unsigned(u32_val_a: u32, u32_val_b: u32) -> u64
+{
+    u32_val_a as u64 * u32_val_b as u64
+}
+
 
 
 #[cfg(test)]
@@ -205,5 +210,13 @@ mod binary_helpers_tests
         assert_eq!(add_u32_trap(0x00000001_u32, 0x00000001_u32).unwrap(), 0x00000002_u32);
         //Overflow
         assert!(add_u32_trap(0xFFFFFFFF_u32, 0x00000001_u32).is_err());
+    }
+
+    #[test]
+    fn multiply_u32_as_unsigned_test() {
+        //Regular
+        assert_eq!(multiply_u32_as_unsigned(0x00000000_u32, 0x00000000_u32), 0x0000000000000000_u64);
+        //Overflow
+        assert_eq!(multiply_u32_as_unsigned(0xFFFFFFFF_u32, 0xFFFFFFFF_u32), 0xFFFFFFFE00000001_u64);
     }
 }

@@ -254,6 +254,7 @@ impl Command
                     0b000000 => Command::SLL,
                     0b000010 => Command::SRL,
                     0b001000 => Command::JR,
+                    0b011001 => Command::MULTU,
                     0b100000 => Command::ADD,
                     0b100001 => Command::ADDU,
                     0b100011 => Command::SUBU,
@@ -312,6 +313,7 @@ impl Command
             Command::LUI => execute_LUI(opcode, cpu),
             Command::LW => execute_LW(opcode, cpu, connector)?,
             Command::MTC0 => execute_MTC0(opcode, cpu),
+            Command::MULTU => execute_MULTU(opcode, cpu),
             Command::OR => execute_OR(opcode, cpu),
             Command::ORI => execute_ORI(opcode, cpu),
             Command::SLL => execute_SLL(opcode, cpu),
@@ -482,6 +484,13 @@ fn execute_MTC0(opcode: &Opcode, cpu: &mut CPU)
 {
     let reg_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
     cpu.cop0_registers.register[opcode.fs as usize].set_value(reg_value);
+}
+
+fn execute_MULTU(opcode: &Opcode, cpu: &mut CPU)
+{
+    let result: u64 = multiply_u32_as_unsigned(cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32, cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32);
+    cpu.lo.set_value((result & 0x00000000FFFFFFFF) as u32);
+    cpu.hi.set_value(((result & 0xFFFFFFFF00000000) >> 32) as u32);
 }
 
 fn execute_OR(opcode: &Opcode, cpu: &mut CPU)

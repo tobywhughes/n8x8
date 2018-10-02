@@ -13,6 +13,8 @@ pub struct CPU
     pub cpu_registers: CPURegisters,
     pub cop0_registers: COP0Registers,
     pub program_counter: Reg,
+    pub lo: Reg,
+    pub hi: Reg,
     pub pc_save: u32,
     pub pc_save_count: u8,
 }
@@ -26,6 +28,8 @@ impl CPU
             cpu_registers: CPURegisters::new(),
             cop0_registers: COP0Registers::new(),
             program_counter: Reg::default(),
+            lo: Reg::default(),
+            hi: Reg::default(),
             pc_save: 0,
             pc_save_count: 0,
         }
