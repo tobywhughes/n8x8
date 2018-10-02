@@ -287,6 +287,7 @@ impl Command
             0b010101 => Command::BNEL,
             0b010110 => Command::BLEZL,
             0b100011 => Command::LW,
+            0b101000 => Command::SB,
             0b101011 => Command::SW,
             _ => Command::UNIMPLEMENTED,
         }
@@ -318,6 +319,7 @@ impl Command
             Command::MULTU => execute_MULTU(opcode, cpu),
             Command::OR => execute_OR(opcode, cpu),
             Command::ORI => execute_ORI(opcode, cpu),
+            Command::SB => execute_SB(opcode, cpu, connector)?,
             Command::SLL => execute_SLL(opcode, cpu),
             Command::SLT => execute_SLT(opcode, cpu),
             Command::SLTI => execute_SLTI(opcode, cpu),
@@ -513,6 +515,13 @@ fn execute_ORI(opcode: &Opcode, cpu: &mut CPU)
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value | (opcode.imm as u32));
 }
 
+fn execute_SB(opcode: &Opcode, cpu: &CPU, connector: &mut Connector) -> Result<(), Error>
+{
+    let new_value = (cpu.cpu_registers.register[opcode.rt as usize].get_value() & 0x00000000000000FF) as u8;
+    let address =  add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.offset);
+    connector.store_u8(address, new_value)?;
+    Ok(())
+}
 
 fn execute_SLL(opcode: &Opcode, cpu: &mut CPU) 
 {
@@ -570,6 +579,3 @@ fn execute_XORI(opcode: &Opcode, cpu: &mut CPU)
     let new_value = (cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32) ^ (opcode.imm as u32);
     cpu.cpu_registers.register[opcode.rt as usize].set_value(new_value);
 }
-
-
-

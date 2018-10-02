@@ -53,6 +53,14 @@ impl Connector
         }
     }
 
+    pub fn read_u8(&self, mut address: u32) -> Result<u8, Error>
+    {
+        let offset = address % 4;
+        address -= offset;
+        let mut u32_value: u32 = self.read_u32(address)?;
+        Ok(((u32_value >> ((3 - offset) * 8) & 0x000000FF) as u8))
+    }
+
     pub fn store_u32(&mut self, address:u32, value: u32) -> Result<(), Error>
     {
         let mapping = memory::MemoryMapping::new(address);
@@ -65,6 +73,15 @@ impl Connector
             memory::Sector::RDRAM_MEM => self.rdram.load_u32_to_address(mapping.mapped_address as usize, value)?,
             _ => return Err(Error::new(ErrorKind::Other, "Unimplemented Address.")),
         };
+        Ok(())
+    }
+
+    pub fn store_u8(&mut self, mut address: u32, value: u8) -> Result<(), Error>
+    {
+        let offset = address % 4;
+        address -= offset;
+        let mut u32_value: u32 = self.read_u32(address)?;
+        self.store_u32(address, (u32_value & (!(0xFF << (8 * (3 - offset))))) | ((value as u32) << (8 * (3 - offset))));
         Ok(())
     }
 }

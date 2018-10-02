@@ -265,7 +265,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_jr() {
+    fn test_jr() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0xFFFFFFFF_u32);
@@ -277,7 +278,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_srl() {
+    fn test_srl() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0x0000010_u32);
@@ -287,7 +289,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_bnel() {
+    fn test_bnel() 
+    {
         //Branch
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -307,7 +310,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_blezl() {
+    fn test_blezl() 
+    {
         //Branch
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -327,7 +331,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_addu() {
+    fn test_addu() 
+    {
         //Regular
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -345,7 +350,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_add() {
+    fn test_add() 
+    {
         //Regular
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -362,7 +368,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_slt() {
+    fn test_slt() 
+    {
         //True
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
@@ -407,7 +414,8 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_multu() {
+    fn test_multu() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.cpu_registers.register[0x01].set_value(0xFFFFFFFF_u32);
@@ -418,13 +426,27 @@ mod cpu_opcodes_tests
     }
 
     #[test]
-    fn test_mflo() {
+    fn test_mflo() 
+    {
         let mut cpu = CPU::new();
         let mut connector = Connector::test();
         cpu.lo.set_value(0xFFFFFFFF_u32);
         let opcode = Opcode::new(0b00000000000000000000100000010010_u32);
         opcode.execute(&mut cpu, &mut connector);
         assert_eq!(cpu.cpu_registers.register[0x01].get_value() as u32, 0xFFFFFFFF_u32);
+    }
+
+    #[test]
+    fn test_sb() 
+    {
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        cpu.cpu_registers.register[0x01].set_value(0xEEEEEEFF_u32);
+        cpu.cpu_registers.register[0x02].set_value(0x00000101_u32);
+        let opcode = Opcode::new(0b10100000010000010000000000000100_u32);
+        opcode.execute(&mut cpu, &mut connector);
+        assert_eq!(connector.read_u32(0x00000104).unwrap(), 0x00FF0000_u32);
+        assert_eq!(connector.read_u8(0x00000105).unwrap(), 0xFF_u8);
     }
 }
 
