@@ -287,6 +287,7 @@ impl Command
             0b010101 => Command::BNEL,
             0b010110 => Command::BLEZL,
             0b100011 => Command::LW,
+            0b100100 => Command::LBU,
             0b101000 => Command::SB,
             0b101011 => Command::SW,
             _ => Command::UNIMPLEMENTED,
@@ -312,6 +313,7 @@ impl Command
             Command::BNEL => execute_BNEL(opcode, cpu),
             Command::JAL => execute_JAL(opcode, cpu),
             Command::JR => execute_JR(opcode, cpu),
+            Command::LBU => execute_LBU(opcode, cpu, connector)?,
             Command::LUI => execute_LUI(opcode, cpu),
             Command::LW => execute_LW(opcode, cpu, connector)?,
             Command::MFLO => execute_MFLO(opcode, cpu),
@@ -469,6 +471,15 @@ fn execute_JR(opcode: &Opcode, cpu: &mut CPU)
     cpu.pc_save = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
     cpu.pc_save_count = 2;
 }
+
+fn execute_LBU(opcode: &Opcode, cpu: &mut CPU, connector: &Connector) -> Result<(), Error>
+{
+    let address = add_u16_to_u32_as_i16_overflow(cpu.cpu_registers.register[opcode.base as usize].get_value() as u32, opcode.imm);
+    let new_value = connector.read_u8(address)?;
+    cpu.cpu_registers.register[opcode.rt as usize].set_value((new_value) as u32);
+    Ok(())
+}
+
 
 fn execute_LUI(opcode: &Opcode, cpu: &mut CPU)
 {
