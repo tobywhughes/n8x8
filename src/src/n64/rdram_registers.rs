@@ -20,7 +20,7 @@ const RDRAM_DEVICE_MANUF_REG_START: usize = 0x00000024;
 const RDRAM_DEVICE_MANUF_REG_END: usize = 0x00000027;
 
 use n64::arch::Reg;
-use std::io::{Error, ErrorKind};
+use n64::exceptions::Exception;
 
 pub struct RDRAMRegisters
 {
@@ -55,12 +55,12 @@ impl RDRAMRegisters
         }
     }
 
-    pub fn read_u32_from_address(&self, address: usize) -> Result<u32, Error>
+    pub fn read_u32_from_address(&self, address: usize) -> Result<u32, Exception>
     {
         //Only allow alligned addresses (unaligned handled exterior to function)
         if address % 4 != 0
         {
-            return Err(Error::new(ErrorKind::Other, "Unaligned Address Call."));
+            return Err(Exception::ADDRESS_ERROR);
         }
 
         match address
@@ -75,16 +75,16 @@ impl RDRAMRegisters
             RDRAM_MIN_INTERVAL_REG_START...RDRAM_MIN_INTERVAL_REG_END => Ok(self.min_interval.get_value() as u32),
             RDRAM_ADDR_SELECT_REG_START...RDRAM_ADDR_SELECT_REG_END => Ok(self.address_select.get_value() as u32),
             RDRAM_DEVICE_MANUF_REG_START...RDRAM_DEVICE_MANUF_REG_END => Ok(self.device_manufacturer.get_value() as u32),
-            _ => Err(Error::new(ErrorKind::Other, "Unused rdram register address.")),
+            _ => Err(Exception::UNIMPLEMENTED_ADDRESS),
         }
     }
 
-    pub fn load_u32_to_address(&mut self, address: usize, value: u32) -> Result<(), Error>
+    pub fn load_u32_to_address(&mut self, address: usize, value: u32) -> Result<(), Exception>
     {
         //Only allow alligned addresses (unaligned handled exterior to function)
         if address % 4 != 0
         {
-            return Err(Error::new(ErrorKind::Other, "Unaligned Address Call."));
+            return Err(Exception::ADDRESS_ERROR);
         }
 
         match address
@@ -100,7 +100,7 @@ impl RDRAMRegisters
             RDRAM_ADDR_SELECT_REG_START...RDRAM_ADDR_SELECT_REG_END => Ok(self.address_select.set_value(value)),
             RDRAM_DEVICE_MANUF_REG_START...RDRAM_DEVICE_MANUF_REG_END => Ok(self.device_manufacturer.set_value(value)),
             0x00004004 | 0x00008004 | 0x00080004 | 0x00080008 | 0x0008000C | 0x00080014 => Ok(()),
-            _ => Err(Error::new(ErrorKind::Other, "Unused rdram register address.")),
+            _ => Err(Exception::UNIMPLEMENTED_ADDRESS),
         }
     }
 }

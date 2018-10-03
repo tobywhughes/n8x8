@@ -1,4 +1,4 @@
-use std::io::{Error, ErrorKind};
+use n64::exceptions::Exception;
 
 pub fn u8_slice_to_u32(u8_slice: Vec<u8>) -> u32
 {
@@ -53,7 +53,7 @@ pub fn add_u16_to_u32_as_i16_overflow(u32_val: u32, u16_val: u16) -> u32
     (result & 0x00000000FFFFFFFF) as u32
 }
 
-pub fn add_u16_to_u32_as_i16_trap(u32_val: u32, u16_val: u16) -> Result<u32, Error>
+pub fn add_u16_to_u32_as_i16_trap(u32_val: u32, u16_val: u16) -> Result<u32, Exception>
 {
     let u32_val_i = u32_val as i64;
     let u16_val_i = u16_val as i16 as i64;
@@ -64,7 +64,7 @@ pub fn add_u16_to_u32_as_i16_trap(u32_val: u32, u16_val: u16) -> Result<u32, Err
     }
     else
     {
-        Err(Error::new(ErrorKind::Other, "Overflow Error. Trap Handler Not Implemented."))
+        Err(Exception::INTEGER_OVERFLOW)
     }
 }
 
@@ -84,7 +84,7 @@ pub fn sub_u32_overflow(u32_val_a: u32, u32_val_b: u32) -> u32
     (result & 0x00000000FFFFFFFF) as u32
 }
 
-pub fn add_u32_trap(u32_val_a: u32, u32_val_b: u32) -> Result<u32, Error>
+pub fn add_u32_trap(u32_val_a: u32, u32_val_b: u32) -> Result<u32, Exception>
 {
     let u32_val_a_l = u32_val_a as u64;
     let u32_val_b_l = u32_val_b as u64;
@@ -95,7 +95,7 @@ pub fn add_u32_trap(u32_val_a: u32, u32_val_b: u32) -> Result<u32, Error>
     }
     else
     {
-        Err(Error::new(ErrorKind::Other, "Overflow Error. Trap Handler Not Implemented."))
+        Err(Exception::INTEGER_OVERFLOW)
     }
 }
 

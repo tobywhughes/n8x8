@@ -1,7 +1,7 @@
 use num::Unsigned;
 use num::{NumCast, ToPrimitive, FromPrimitive};
 use std::fmt;
-use std::io::{Error, ErrorKind};
+
 
 use n64::exceptions::Exception;
 use n64::arch::Reg;
@@ -51,7 +51,7 @@ impl CPU
         Opcode::new(value)
     }
 
-    pub fn execute_opcode(&mut self, opcode: &Opcode, connector: &mut Connector) -> Result<(), Error>
+    pub fn execute_opcode(&mut self, opcode: &Opcode, connector: &mut Connector) -> Result<(), Exception>
     {
         opcode.execute(self, connector)?;
         if self.pc_save_count > 0
@@ -64,6 +64,12 @@ impl CPU
             self.pc_save_count -= 1;
         }
         Ok(())
+    }
+
+    pub fn compute_physical_address(&mut self, virtual_address: u32) -> Result<u32, Exception>
+    {
+        let asid: u8 = ((self.cop0_registers.register[COP0RegisterName::EntryHi as usize].get_value() as u32) & 0x000000FF) as u8;
+        Err(Exception::TLB_MISS(virtual_address, asid))
     }
 }
 
@@ -227,10 +233,7 @@ impl COP0Registers
         self.register[COP0RegisterName::Config as usize].set_value(0x0006E463_u32);
     }
 
-    pub fn compute_physical_address(&mut self, virtual_address: u32) -> u32
-    {
-        0
-    }
+
 
     pub fn Debug(&self)
     {

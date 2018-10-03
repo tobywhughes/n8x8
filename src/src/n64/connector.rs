@@ -1,5 +1,5 @@
 use n64::{cpu, rom, mips_iface, memory,rsp, rdram_iface, rdram_registers, rdram};
-use std::io::{Error, ErrorKind};
+use n64::exceptions::Exception;
 
 pub struct Connector
 {
@@ -39,7 +39,7 @@ impl Connector
         }
     }
 
-    pub fn read_u32(&self, address: u32) -> Result<u32, Error>
+    pub fn read_u32(&self, address: u32) -> Result<u32, Exception>
     {
         let mapping = memory::MemoryMapping::new(address);
         match mapping.sector
@@ -49,11 +49,11 @@ impl Connector
             memory::Sector::MI_REG => Ok(self.mips_interface.read_u32_from_address(mapping.mapped_address as usize)?),
             memory::Sector::RDRAM_REG => Ok(self.rdram_registers.read_u32_from_address(mapping.mapped_address as usize)?),
             memory::Sector::RDRAM_MEM => Ok(self.rdram.read_u32_from_address(mapping.mapped_address as usize)?),
-            _ => Err(Error::new(ErrorKind::Other, "Unimplemented Address.")),
+            _ => Err(Exception::UNIMPLEMENTED_ADDRESS),
         }
     }
 
-    pub fn read_u8(&self, mut address: u32) -> Result<u8, Error>
+    pub fn read_u8(&self, mut address: u32) -> Result<u8, Exception>
     {
         let offset = address % 4;
         address -= offset;
@@ -61,7 +61,7 @@ impl Connector
         Ok(((u32_value >> ((3 - offset) * 8) & 0x000000FF) as u8))
     }
 
-    pub fn store_u32(&mut self, address:u32, value: u32) -> Result<(), Error>
+    pub fn store_u32(&mut self, address:u32, value: u32) -> Result<(), Exception>
     {
         let mapping = memory::MemoryMapping::new(address);
         match mapping.sector
@@ -71,12 +71,12 @@ impl Connector
             memory::Sector::MI_REG => self.mips_interface.load_u32_to_address(mapping.mapped_address as usize, value)?,
             memory::Sector::RDRAM_REG => self.rdram_registers.load_u32_to_address(mapping.mapped_address as usize, value)?,
             memory::Sector::RDRAM_MEM => self.rdram.load_u32_to_address(mapping.mapped_address as usize, value)?,
-            _ => return Err(Error::new(ErrorKind::Other, "Unimplemented Address.")),
+            _ => return Err(Exception::UNIMPLEMENTED_ADDRESS),
         };
         Ok(())
     }
 
-    pub fn store_u8(&mut self, mut address: u32, value: u8) -> Result<(), Error>
+    pub fn store_u8(&mut self, mut address: u32, value: u8) -> Result<(), Exception>
     {
         let offset = address % 4;
         address -= offset;
