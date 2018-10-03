@@ -12,6 +12,7 @@ pub struct CPU
 {
     pub cpu_registers: CPURegisters,
     pub cop0_registers: COP0Registers,
+    pub tlb: TLB,
     pub program_counter: Reg,
     pub lo: Reg,
     pub hi: Reg,
@@ -28,6 +29,7 @@ impl CPU
             cpu_registers: CPURegisters::new(),
             cop0_registers: COP0Registers::new(),
             program_counter: Reg::default(),
+            tlb: TLB::new(),
             lo: Reg::default(),
             hi: Reg::default(),
             pc_save: 0,
@@ -89,10 +91,7 @@ impl CPURegisters
         self.register[CPURegisterName::sp as usize].set_value(0xA4001FF0_u32);
     }
 
-    pub fn compute_physical_address(&mut self, virtual_address: u32) -> u32
-    {
-        0
-    }
+
 
     pub fn Debug(&self)
     {
@@ -105,6 +104,101 @@ impl CPURegisters
                 print!("\n");
             }
         }
+    }
+}
+
+pub struct TLB
+{
+    pub entries: Vec<TLBEntry>,
+}
+
+impl TLB
+{
+    pub fn new() -> TLB
+    {
+        let mut TLBEntryVector: Vec<TLBEntry> = Vec::new();
+        for i in 0..0x20
+        {
+            TLBEntryVector.push(TLBEntry::new());
+        }
+        return TLB
+        {
+            entries: TLBEntryVector,
+        }
+    }
+}
+
+pub struct TLBEntry
+{
+    pub data: Vec<u32>,
+    pub mask: u16,
+    pub virtual_page_number: u32,
+    pub global: bool,
+    pub address_space_id: u8,
+    pub physical_frame_num_even: u32,
+    pub physical_frame_num_odd: u32,
+    pub cache_algorithm_even: u8,
+    pub cache_algorithm_odd: u8,
+    pub dirty_even: bool,
+    pub dirty_odd: bool,
+    pub valid_even: bool,
+    pub valid_odd: bool,
+}
+
+impl TLBEntry
+{
+    pub fn new() -> TLBEntry
+    {
+        return TLBEntry
+        {
+            data: vec![0_u32;4],
+            mask: 0,
+            virtual_page_number: 0,
+            global: false,
+            address_space_id: 0,
+            physical_frame_num_even: 0,
+            physical_frame_num_odd: 0,
+            cache_algorithm_even: 0,
+            cache_algorithm_odd: 0,
+            dirty_even: false,
+            dirty_odd: false,
+            valid_even: false,
+            valid_odd: false,
+        }
+    }
+
+    pub fn fill_entry_from_cop0_regs(&mut self, cop0_registers: &COP0Registers)
+    {
+        let page_mask_ = cop0_registers.register[COP0RegisterName::PageMask as usize].get_value() as u32;
+        let entry_hi_ = cop0_registers.register[COP0RegisterName::EntryHi as usize].get_value() as u32;
+        let entry_lo0_ = cop0_registers.register[COP0RegisterName::EntryLo0 as usize].get_value() as u32;
+        let entry_lo1_ = cop0_registers.register[COP0RegisterName::EntryLo1 as usize].get_value() as u32;
+
+        //Page Mask
+        self.data[0] =  page_mask_ & 0x01FFE000;
+        self.mask = ((page_mask_ >> 13) & 0x00000FFF) as u16;
+
+        //VPN divided by 2 and asid
+        self.data[1] =  entry_hi_ & 0xFFFFE0FF;
+        self.virtual_page_number = (entry_hi_ >> 13) & 0x0007FFFF;
+        self.address_space_id =  (entry_hi_ & 0x000000FF) as u8;
+
+        //global
+        let global_ = (entry_lo0_ & 0x00000001) & (entry_lo1_ & 0x00000001);
+        self.global = if global_ != 0 {true} else {false};
+        self.data[1] |= global_ << 12;         
+
+        //Entry los to pfns, etc.
+        self.data[2] = entry_lo0_ & 0x03FFFFFE;
+        self.data[3] = entry_lo1_ & 0x03FFFFFE;
+        self.physical_frame_num_even =  (entry_lo0_ >> 6) & 0x000FFFFF;
+        self.physical_frame_num_odd =  (entry_lo1_ >> 6) & 0x000FFFFF;
+        self.cache_algorithm_even = ((entry_lo0_ >> 3) & 0x00000007) as u8;
+        self.cache_algorithm_odd = ((entry_lo1_ >> 3) & 0x00000007) as u8;
+        self.dirty_even = if ((entry_lo0_  >> 2) & 0x00000001) == 1 {true} else {false};
+        self.dirty_odd = if ((entry_lo1_  >> 2) & 0x00000001) == 1 {true} else {false};
+        self.valid_even = if ((entry_lo0_  >> 1) & 0x00000001) == 1 {true} else {false};
+        self.valid_odd = if ((entry_lo1_  >> 1) & 0x00000001) == 1 {true} else {false};
     }
 }
 
@@ -131,6 +225,11 @@ impl COP0Registers
         self.register[COP0RegisterName::Status as usize].set_value(0x70400004_u32);
         self.register[COP0RegisterName::PRevID as usize].set_value(0x00000B00_u32);
         self.register[COP0RegisterName::Config as usize].set_value(0x0006E463_u32);
+    }
+
+    pub fn compute_physical_address(&mut self, virtual_address: u32) -> u32
+    {
+        0
     }
 
     pub fn Debug(&self)

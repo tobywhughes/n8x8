@@ -63,4 +63,36 @@ mod cpu_tests
             }
         }
     }
+
+    #[test]
+    fn test_tlb_entry_fill() 
+    {
+        let mut cpu = CPU::new();
+        cpu.cop0_registers.register[COP0RegisterName::PageMask as usize].set_value(0xFFFFFFFF_u32);
+        cpu.cop0_registers.register[COP0RegisterName::EntryHi as usize].set_value(0xFFFFFFFF_u32);
+        cpu.cop0_registers.register[COP0RegisterName::EntryLo0 as usize].set_value(0xFFFFFFFF_u32);
+        cpu.cop0_registers.register[COP0RegisterName::EntryLo1 as usize].set_value(0xFFFFFFFF_u32);
+        cpu.tlb.entries[0].fill_entry_from_cop0_regs(&cpu.cop0_registers);
+        //data 0
+        assert_eq!(cpu.tlb.entries[0].data[0], 0b00000001111111111110000000000000_u32);
+        assert_eq!(cpu.tlb.entries[0].mask, 0x0FFF_u16);
+
+        //data 1
+        assert_eq!(cpu.tlb.entries[0].data[1], 0b11111111111111111111000011111111_u32);
+        assert_eq!(cpu.tlb.entries[0].virtual_page_number, 0x0007FFFF_u32);
+        assert_eq!(cpu.tlb.entries[0].global, true);
+        assert_eq!(cpu.tlb.entries[0].address_space_id, 0xFF_u8);
+
+        //data 2
+        assert_eq!(cpu.tlb.entries[0].data[2], 0b00000011111111111111111111111110_u32);
+        assert_eq!(cpu.tlb.entries[0].physical_frame_num_even, 0x000FFFFF_u32);
+        assert_eq!(cpu.tlb.entries[0].dirty_even, true);
+        assert_eq!(cpu.tlb.entries[0].valid_even, true);
+
+        //data 3
+        assert_eq!(cpu.tlb.entries[0].data[3], 0b00000011111111111111111111111110_u32);
+        assert_eq!(cpu.tlb.entries[0].physical_frame_num_odd, 0x000FFFFF_u32);
+        assert_eq!(cpu.tlb.entries[0].dirty_odd, true);
+        assert_eq!(cpu.tlb.entries[0].valid_odd, true);
+    }
 }
