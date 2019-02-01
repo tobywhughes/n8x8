@@ -69,6 +69,32 @@ impl CPU
     pub fn compute_physical_address(&mut self, virtual_address: u32) -> Result<u32, Exception>
     {
         let asid: u8 = ((self.cop0_registers.register[COP0RegisterName::EntryHi as usize].get_value() as u32) & 0x000000FF) as u8;
+        for tlb_index in 0..0x20
+        {
+            let mask_offset = ((self.tlb.entries[tlb_index].mask as f32) + 1.0).log2() as u8;
+            let vaddr_vpn: u32 = virtual_address >> (12 + mask_offset);
+            if (vaddr_vpn >> 1) == (self.tlb.entries[tlb_index].virtual_page_number >> mask_offset)
+            {
+                if asid == self.tlb.entries[tlb_index].address_space_id || self.tlb.entries[tlb_index].global
+                {
+                    if vaddr_vpn % 2 == 0
+                    {
+                        if self.tlb.entries[tlb_index].valid_even && self.tlb.entries[tlb_index].dirty_even
+                        {
+                            return Ok(((self.tlb.entries[tlb_index].physical_frame_num_even & (!((2 ^ (mask_offset as u32)) -1))) << 12) | (virtual_address & ((2 ^ (12 + mask_offset as u32)) -1)))
+                        }
+                    }
+                    else
+                    {
+                        if self.tlb.entries[tlb_index].valid_odd && self.tlb.entries[tlb_index].dirty_odd
+                        {
+                            return Ok(((self.tlb.entries[tlb_index].physical_frame_num_odd & (!((2 ^ (mask_offset as u32)) -1))) << 12) | (virtual_address & ((2 ^ (12 + mask_offset as u32)) -1)))
+
+                        }
+                    }
+                }
+            }
+        }
         Err(Exception::TLB_MISS(virtual_address, asid))
     }
 }

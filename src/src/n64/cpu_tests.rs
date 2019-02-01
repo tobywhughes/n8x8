@@ -95,4 +95,23 @@ mod cpu_tests
         assert_eq!(cpu.tlb.entries[0].dirty_odd, true);
         assert_eq!(cpu.tlb.entries[0].valid_odd, true);
     }
+
+    #[test]
+    fn test_virtual_to_physical_conversion() 
+    {
+        let mut cpu = CPU::new();
+        //No valid bits set
+        assert!(cpu.compute_physical_address(0x00000000_u32).is_err());
+        //No Match
+        assert!(cpu.compute_physical_address(0xFFFFFFFF_u32).is_err());
+
+        cpu.cop0_registers.register[COP0RegisterName::PageMask as usize].set_value(0xFFFFFFFF_u32);
+        cpu.cop0_registers.register[COP0RegisterName::EntryHi as usize].set_value(0xFFFFFFFF_u32);
+        cpu.cop0_registers.register[COP0RegisterName::EntryLo0 as usize].set_value(0xFFFFFFFF_u32);
+        cpu.cop0_registers.register[COP0RegisterName::EntryLo1 as usize].set_value(0xFFFFFFFF_u32);
+        cpu.tlb.entries[0x1F].fill_entry_from_cop0_regs(&cpu.cop0_registers);
+        assert!(cpu.compute_physical_address(0xFFFFFFFF_u32).is_ok());
+        println!("{:032b}", cpu.compute_physical_address(0xFFFFFFFF_u32).unwrap());
+        assert_eq!(0, 0xFFFFFFFF_u32);
+    }
 }
