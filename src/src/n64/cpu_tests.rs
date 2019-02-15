@@ -111,7 +111,6 @@ mod cpu_tests
         cpu.cop0_registers.register[COP0RegisterName::EntryLo1 as usize].set_value(0xFFFFFFFF_u32);
         cpu.tlb.entries[0x1F].fill_entry_from_cop0_regs(&cpu.cop0_registers);
         assert!(cpu.compute_physical_address(0xFFFFFFFF_u32).is_ok());
-        println!("{:032b}", cpu.compute_physical_address(0xFFFFFFFF_u32).unwrap());
-        assert_eq!(0, 0xFFFFFFFF_u32);
+        assert_eq!(cpu.compute_physical_address(0xFFFFFFFF_u32).unwrap(), 0xFFFFFFFF_u32);
     }
 }

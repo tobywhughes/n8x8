@@ -81,14 +81,14 @@ impl CPU
                     {
                         if self.tlb.entries[tlb_index].valid_even && self.tlb.entries[tlb_index].dirty_even
                         {
-                            return Ok(((self.tlb.entries[tlb_index].physical_frame_num_even & (!((2 ^ (mask_offset as u32)) -1))) << 12) | (virtual_address & ((2 ^ (12 + mask_offset as u32)) -1)))
+                            return Ok(((self.tlb.entries[tlb_index].physical_frame_num_even & (!((1 << (mask_offset as u32)) -1))) << 12) | (virtual_address & ((1 << (12 + mask_offset as u32)) -1)))
                         }
                     }
                     else
                     {
                         if self.tlb.entries[tlb_index].valid_odd && self.tlb.entries[tlb_index].dirty_odd
                         {
-                            return Ok(((self.tlb.entries[tlb_index].physical_frame_num_odd & (!((2 ^ (mask_offset as u32)) -1))) << 12) | (virtual_address & ((2 ^ (12 + mask_offset as u32)) -1)))
+                            return Ok(((self.tlb.entries[tlb_index].physical_frame_num_odd & (!((1 << (mask_offset as u32)) -1))) << 12) | (virtual_address & ((1 << (12 + mask_offset as u32)) -1)))
 
                         }
                     }
@@ -231,6 +231,19 @@ impl TLBEntry
         self.dirty_odd = if ((entry_lo1_  >> 2) & 0x00000001) == 1 {true} else {false};
         self.valid_even = if ((entry_lo0_  >> 1) & 0x00000001) == 1 {true} else {false};
         self.valid_odd = if ((entry_lo1_  >> 1) & 0x00000001) == 1 {true} else {false};
+    }
+
+    pub fn Debug(&self)
+    {
+        println!("{:08X} {:08X} {:08X} {:08X}", self.data[0], self.data[1], self.data[2], self.data[3]);
+        println!("Mask: {:032b}", self.mask);
+        println!("VPN: {:032b}", self.virtual_page_number);
+        println!("ASID: {:032b}",  self.address_space_id);
+        println!("PFN even/odd {:032b} {:032b}", self.physical_frame_num_even, self.physical_frame_num_odd);
+        println!("Cache Algorithm even/odd {:032b} {:032b}", self.cache_algorithm_even, self.cache_algorithm_odd);
+        println!("Global {}", self.global);
+        println!("Dirty even/odd {} {}", self.dirty_even, self.dirty_odd);
+        println!("valideven/odd {} {}", self.valid_even, self.valid_odd);
     }
 }
 
