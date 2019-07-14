@@ -11,6 +11,7 @@ pub mod cpu_opcodes;
 pub mod rdram_iface;
 pub mod rdram_registers;
 pub mod rdram;
+pub mod icache;
 
 pub mod memory_tests;
 pub mod rom_tests;
@@ -19,3 +20,4 @@ pub mod arch_tests;
 pub mod rsp_tests;
 pub mod cpu_opcodes_tests;
 pub mod rdram_iface_tests;
+pub mod icache_tests;
