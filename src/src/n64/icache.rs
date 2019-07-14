@@ -9,8 +9,13 @@ impl ICache {
         }
     }
 
-    pub fn parse_line_index_from_virtual_index(&self, virtual_address: u32) -> u32{
-        return (virtual_address & 0x00003FE0) >> 5;
+    pub fn parse_line_index_from_virtual_index(&self, virtual_address: u32) -> usize{
+        return (virtual_address as usize & 0x00003FE0) >> 5;
+    }
+
+    pub fn set_physical_tag_by_virtual_address(&mut self, virtual_address: u32, value: u32) {
+        let tag_line: usize = self.parse_line_index_from_virtual_index(virtual_address);
+        self.line[tag_line].set_physical_tag(value);
     }
 }
 

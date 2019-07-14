@@ -1,4 +1,4 @@
-use n64::{cpu, rom, mips_iface, memory,rsp, rdram_iface, rdram_registers, rdram};
+use n64::{cpu, rom, mips_iface, memory,rsp, rdram_iface, rdram_registers, rdram, icache};
 use n64::exceptions::Exception;
 
 pub struct Connector
@@ -9,6 +9,7 @@ pub struct Connector
     pub rdram_iface: rdram_iface::RDRAMInterface,
     pub rdram_registers: rdram_registers::RDRAMRegisters, 
     pub rdram: rdram::RDRAM,
+    pub icache: icache::ICache,
 }
 
 impl Connector
@@ -23,6 +24,7 @@ impl Connector
             rdram_iface: rdram_iface::RDRAMInterface::new(),
             rdram_registers: rdram_registers::RDRAMRegisters::new(),
             rdram: rdram::RDRAM::new(),
+            icache: icache::ICache::new()
         }
     }
 
@@ -36,6 +38,7 @@ impl Connector
             rdram_iface: rdram_iface::RDRAMInterface::new(),
             rdram_registers: rdram_registers::RDRAMRegisters::new(),
             rdram: rdram::RDRAM::new(),
+            icache: icache::ICache::new()
         }
     }
 

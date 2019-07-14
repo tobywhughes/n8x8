@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod cpu_opcodes_tests
 {
-    use n64::cpu::{CPU, CPURegisterName};
+    use n64::cpu::{CPU, CPURegisterName, COP0RegisterName};
     use n64::connector::Connector;
     use n64::cpu_opcodes::*;
 
@@ -478,6 +478,21 @@ mod cpu_opcodes_tests
         let opcode = Opcode::new(0b00000100001000110000000000000100_u32);
         cpu.execute_opcode(&opcode, &mut connector);
         assert_eq!(cpu.program_counter.get_value() as u32, 0x00000014_u32);
+    }
+
+    #[test]
+    fn test_cache_i_st() {
+        let mut cpu = CPU::new();
+        let mut connector = Connector::test();
+        
+        cpu.cop0_registers.register[COP0RegisterName::TagLo as usize].set_value(0xFFFF0000_u32);
+        cpu.cpu_registers.register[0x01].set_value(0x000000E0_u32);
+
+        let opcode = Opcode::new(0b10111100001010000011111100000000_u32);
+        cpu.execute_opcode(&opcode, &mut connector);
+
+        let tag_result: u32 = connector.icache.line[511].get_physical_tag();
+        assert_eq!(tag_result, 0x000F0000);
     }
 }
 

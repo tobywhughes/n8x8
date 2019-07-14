@@ -1,6 +1,6 @@
 use num::{NumCast, ToPrimitive, FromPrimitive};
 use n64::exceptions::Exception;
-use n64::cpu::{CPU, CPURegisterName};
+use n64::cpu::{CPU, CPURegisterName, COP0RegisterName};
 use n64::connector::Connector;
 use std::fmt;
 use binary_helpers::*;
@@ -239,24 +239,6 @@ pub enum Command
     CACHE_I_ST
 }
 
-//Cache operations can be found in J Heinrich 1994 mips Appendix A-42
-
-//xxxyy
-
-//yy refers to cache
-//00 - i - primary instruction cache
-//01 - d - primary data cache
-//10 - si - secondary instruction cache
-//11 - sd - secondary data cache
-
-//xxx refers to operation
-//000 - I/SI index invalidate
-//000 - D/SD - index writeback invalidate
-//001 - All - index load tag
-//010 - All - index store tag
-//...
-
-
 impl Command
 {
     pub fn from_opcode(opcode: u32) -> Command
@@ -349,7 +331,7 @@ impl Command
             Command::BGEZL => execute_BGEZL(opcode, cpu),
             Command::BNE => execute_BNE(opcode, cpu),
             Command::BNEL => execute_BNEL(opcode, cpu),
-            Command::CACHE_I_ST => return Err(Exception::OTHER("CACHE/TLB Not Implemented".to_string())),
+            Command::CACHE_I_ST => execute_CACHE_I_ST(opcode, cpu, connector),
             Command::JAL => execute_JAL(opcode, cpu),
             Command::JR => execute_JR(opcode, cpu),
             Command::LBU => execute_LBU(opcode, cpu, connector)?,
@@ -512,6 +494,12 @@ fn execute_BNEL(opcode: &Opcode, cpu: &mut CPU)
         let new_pc = cpu.program_counter.get_value() as u32 + 4;
         cpu.program_counter.set_value(new_pc);
     }
+}
+
+fn execute_CACHE_I_ST(opcode: &Opcode, cpu: &mut CPU, connector: &mut Connector) {
+    let virtual_address: u32 = opcode.offset as u32 + cpu.cpu_registers.register[opcode.base as usize].get_value() as u32;
+    let tag_set_value: u32 = cpu.cop0_registers.register[COP0RegisterName::TagLo as usize].get_value() as u32;
+    connector.icache.set_physical_tag_by_virtual_address(virtual_address, tag_set_value);
 }
 
 fn execute_JAL(opcode: &Opcode, cpu: &mut CPU)
