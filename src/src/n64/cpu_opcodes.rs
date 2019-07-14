@@ -265,6 +265,7 @@ impl Command
                     0b100100 => Command::AND,
                     0b100101 => Command::OR,
                     0b101010 => Command::SLT,
+                    0b101011 => Command::SLTU,
                     _ => Command::UNIMPLEMENTED,
                 }
             },
@@ -346,6 +347,7 @@ impl Command
             Command::SLL => execute_SLL(opcode, cpu),
             Command::SLT => execute_SLT(opcode, cpu),
             Command::SLTI => execute_SLTI(opcode, cpu),
+            Command::SLTU => execute_SLTU(opcode, cpu),
             Command::SRL => execute_SRL(opcode, cpu),
             Command::SUBU => execute_SUBU(opcode, cpu),
             Command::SW => execute_SW(opcode, cpu, connector)?,
@@ -586,8 +588,8 @@ fn execute_SLL(opcode: &Opcode, cpu: &mut CPU)
 
 fn execute_SLT(opcode: &Opcode, cpu: &mut CPU) 
 {
-    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
-    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as i32;
+    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as i32;
     if l_value < r_value
     {
         cpu.cpu_registers.register[opcode.rd as usize].set_value(1_u8);
@@ -606,6 +608,20 @@ fn execute_SLTI(opcode: &Opcode, cpu: &mut CPU)
     }
     else {
         cpu.cpu_registers.register[opcode.rt as usize].set_value(0_u8);
+    }
+}
+
+fn execute_SLTU(opcode: &Opcode, cpu: &mut CPU) 
+{
+    let l_value = cpu.cpu_registers.register[opcode.rs as usize].get_value() as u32;
+    let r_value = cpu.cpu_registers.register[opcode.rt as usize].get_value() as u32;
+    if l_value < r_value
+    {
+        cpu.cpu_registers.register[opcode.rd as usize].set_value(1_u8);
+    }
+    else
+    {
+        cpu.cpu_registers.register[opcode.rd as usize].set_value(0_u8);
     }
 }
 
